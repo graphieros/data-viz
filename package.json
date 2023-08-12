@@ -1,14 +1,17 @@
 {
-  "name": "data-viz",
+  "name": "data-vision",
   "version": "0.0.1",
+  "private": false,
   "type": "module",
-  "main": "./dist/data-viz.umd.cjs",
-  "module": "./dist/data-viz.js",
+  "main": "./dist/data-vision.umd.cjs",
+  "module": "./dist/data-vision.js",
   "types": "./dist/index.d.ts",
+  "author": "Alec Lloyd Probert",
+  "license": "MIT",
   "exports": {
     ".": {
-      "import": "./dist/data-viz.js",
-      "export": "./dist/data-viz.umd.cjs"
+      "import": "./dist/data-vision.js",
+      "export": "./dist/data-vision.umd.cjs"
     }
   },
   "files": [

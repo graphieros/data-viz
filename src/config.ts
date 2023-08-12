@@ -76,6 +76,27 @@ export const configLine = {
             opacity: 5,
         }
     },
+    yLabels: {
+        values: [],
+        showOnlyFirstAndLast: true,
+    },
+    tooltip: {
+        backgroundColor: "#FFFFFF",
+        color: "#2D353C",
+        padding: 12,
+        fontSize: 14,
+        border: "1px solid #e1e5e8",
+        borderRadius: 4,
+        boxShadow: "0 6px 12px -3px #2D353C33",
+        offsetY: 12,
+        value: {
+            rounding: 0,
+            bold: true,
+        },
+        percentage: {
+
+        }
+    }
 
 }
 

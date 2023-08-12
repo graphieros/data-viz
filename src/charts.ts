@@ -4,13 +4,14 @@ import {
     parseUserConfig,
     parseUserDataset,
     clearDataAttributes,
-    getDrawingArea
+    getDrawingArea,
 } from "./functions";
 
 import {
     makeXyGrid,
     drawLine,
-    createTraps
+    createTraps,
+    createTooltip
 } from "./util-line"
 
 import {
@@ -21,7 +22,7 @@ import { Chart } from "./constants";
 import STATE from "./state";
 
 function nuke(attr = "") {
-    const all = document.getElementsByClassName("data-viz") as any;
+    const all = document.getElementsByClassName("data-vision") as any;
 
     if (!attr) {
         Array.from(all).forEach(t => (t as HTMLElement).innerHTML = "");
@@ -35,15 +36,15 @@ function nuke(attr = "") {
 }
 
 export function createCharts(attr = "") {
-    const targets = document.getElementsByClassName("data-viz") as any
+    const targets = document.getElementsByClassName("data-vision") as any
 
     if (targets.length) {
 
-        if (!attr || attr === "data-viz-xy") {
+        if (!attr || attr === "data-vision-xy") {
             const lines = Array.from(targets).filter((node: any) => {
-                return node.hasAttribute("data-viz-xy")
+                return node.hasAttribute("data-vision-xy")
             });
-            nuke("data-viz-xy");
+            nuke("data-vision-xy");
             lines.forEach(line => createXyChart(line as unknown as HTMLDivElement))
         }
     }
@@ -51,13 +52,13 @@ export function createCharts(attr = "") {
 
 function createXyChart(node: HTMLDivElement) {
     node.style.width = `${node.getAttribute("width")}`;
-    const userConfig = parseUserConfig(node.dataset.vizConfig);
+    const userConfig = parseUserConfig(node.dataset.visionConfig);
 
     const config = createConfig({
         userConfig,
         defaultConfig: configLine
     });
-    const dataset = parseUserDataset(node.dataset.vizSet);
+    const dataset = parseUserDataset(node.dataset.visionSet);
 
     clearDataAttributes(node);
 
@@ -73,7 +74,6 @@ function createXyChart(node: HTMLDivElement) {
         dataset,
         selectedSerie: undefined,
     };
-    console.log(STATE)
 
     const drawingArea = getDrawingArea(config);
 
@@ -134,6 +134,11 @@ function createXyChart(node: HTMLDivElement) {
         maxSeries
     });
 
+    svg = createTooltip({
+        id,
+        config,
+        drawingArea
+    })
 }
 
 const charts = {

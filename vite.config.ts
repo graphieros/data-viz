@@ -10,8 +10,8 @@ export default defineConfig({
   build: {
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
-      name: 'data-viz',
-      fileName: 'data-viz',
+      name: 'data-vision',
+      fileName: 'data-vision',
     },
     minify: 'terser',
     terserOptions: {

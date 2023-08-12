@@ -1,3 +1,7 @@
 svg {
     border: 1px dashed red;
 }
+
+.data-vision-tooltip {
+    max-width: 300px;
+}

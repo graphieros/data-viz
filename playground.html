@@ -5,25 +5,28 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>data-viz</title>
-    <script defer src="./dist/data-viz.js"></script>
+    <script defer src="./dist/data-vision.js"></script>
     <link rel="stylesheet" href="./css/index.css">
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
 </head>
 <body>
     <div
         width="100%"
-        class="data-viz"
-        data-viz-xy 
-        data-viz-set='[
+        class="data-vision"
+        data-vision-xy 
+        data-vision-set='[
             {"name": "serie1","type":"line","showLabels":true,
             "values": [-21.4, -13, -8, -5, -3, -2, -1, -1, 0, 1, 1, 2, 3, 5, 8, 13, 21]}
         ]'
-        data-viz-config='{
+        data-vision-config='{
             "backgroundColor" : "#fafafa",
             "line": {
                 "plots": {
                     "show": true
                 }
+            },
+            "yLabels": {
+                "values": ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC", "JAN", "FEV", "MAR", "APR", "MAY"]
             }
         }'
     ></div>  

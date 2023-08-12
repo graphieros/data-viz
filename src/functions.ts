@@ -1,3 +1,4 @@
+import { palette } from "./config";
 import { SvgAttribute } from "./constants";
 
 /** Shorthand for element.setAttribute
@@ -211,9 +212,19 @@ export function parseUserConfig(userConfig: any) {
 export function parseUserDataset(userDataset: any, type = 'object') {
     if (typeof userDataset === "string") {
         userDataset = userDataset.replaceAll(" ", "");
-        return JSON.parse(userDataset);
+        return JSON.parse(userDataset).map((s: any, i: number) => {
+            return {
+                ...s,
+                color: s.color || palette[i] || palette[i % i]
+            }
+        });
     } else if (typeof userDataset === 'object') {
-        return userDataset;
+        return userDataset.map((s: any, i: number) => {
+            return {
+                ...s,
+                color: s.color || palette[i] || palette[i % i]
+            }
+        });
     } else {
         if (type === 'object') {
             return {}
@@ -251,8 +262,8 @@ export function treeShake({ userConfig, defaultConfig }: { userConfig: any, defa
 }
 
 export function clearDataAttributes(node: any) {
-    node.dataset.vizConfig = "ok";
-    node.dataset.vizSet = "ok"
+    node.dataset.visionConfig = "ok";
+    node.dataset.visionSet = "ok"
 }
 
 export function createSvg({ parent, dimensions, config }: { parent: HTMLDivElement, dimensions: { x: number, y: number }, config: any }) {

@@ -1,5 +1,5 @@
-import { SvgAttribute, SvgElement } from "./constants";
-import { spawnNS, addTo, isValidUserValue, createLinearGradient, shiftHue, grabId } from "./functions";
+import { DomElement, SvgAttribute, SvgElement } from "./constants";
+import { spawn, spawnNS, addTo, isValidUserValue, createLinearGradient, shiftHue, grabId } from "./functions";
 import { opacity } from "./config";
 import STATE from "./state";
 
@@ -30,15 +30,16 @@ export function createTraps({ id, config, drawingArea, maxSeries }: { id: string
 
     function select(rect: any, i: number) {
         addTo(rect, SvgAttribute.FILL, `${config.line.indicator.color}${opacity[config.line.indicator.opacity]}`);
-        STATE.charts[id].selectedSerie = i;
+        STATE.charts[id].selectedIndex = i;
+        STATE.isTooltip = true;
     }
     function unselect(rect: any) {
         addTo(rect, SvgAttribute.FILL, "transparent");
-        STATE.charts[id].selectedSerie = undefined;
+        STATE.isTooltip = false;
+        STATE.charts[id].selectedIndex = undefined;
     }
 
     const traps: any = [];
-    console.log({ id })
     for (let i = 0; i < maxSeries; i += 1) {
         const t = spawnNS(SvgElement.RECT);
         addTo(t, SvgAttribute.X, drawingArea.left + (i * (drawingArea.width / maxSeries)));
@@ -129,10 +130,64 @@ export function drawLine({ svg, line, config, palette, index, drawingArea }: { s
     return svg;
 }
 
+export function createTooltip({ id, config, drawingArea }: { id: string, config: any, drawingArea: any }) {
+    const svg = grabId(id);
+    const svgRect = svg.getBoundingClientRect();
+    const tooltip = spawn(DomElement.DIV) as unknown as HTMLDivElement;
+    tooltip.classList.add("data-vision-tooltip");
+
+    tooltip.style.position = "fixed";
+    tooltip.style.background = config.tooltip.backgroundColor;
+    tooltip.style.padding = `${config.tooltip.padding}px`;
+    tooltip.style.border = config.tooltip.border;
+    tooltip.style.borderRadius = `${config.tooltip.borderRadius}px`;
+    tooltip.style.boxShadow = config.tooltip.boxShadow;
+    tooltip.style.fontSize = `${config.tooltip.fontSize}px`;
+    tooltip.style.fontFamily = config.fontFamily;
+    tooltip.style.color = config.tooltip.color;
+    tooltip.style.zIndex = "100";
+
+    const series = STATE.charts[id].dataset.map(s => {
+        return {
+            ...s,
+            name: s.name,
+            color: s.color,
+        }
+    });
+
+    svg.addEventListener("mousemove", (e: any) => {
+        tooltip.remove();
+        if (STATE.isTooltip) {
+            document.body.appendChild(tooltip);
+            const rect = tooltip.getBoundingClientRect();
+            STATE.clientX = e.clientX - rect.width / 2;
+            STATE.clientY = e.clientY + 24 + config.tooltip.offsetY;
+            // tooltip.style.left = `${STATE.clientX - rect.width / 2}px`;
+            tooltip.style.left = `${STATE.clientX + rect.width > window.innerWidth ? STATE.clientX - rect.width / 2 : STATE.clientX - rect.width < 0 ? STATE.clientX + rect.width / 2 : STATE.clientX}px`;
+            tooltip.style.top = `${STATE.clientY + rect.height > window.innerHeight ? STATE.clientY - (rect.height) - 64 : STATE.clientY}px`;
+            tooltip.innerHTML = `
+                <div style="display:block; width:100%; border-bottom:1px solid #e1e5e8; padding:0 0 6px 0; margin-bottom:6px;">${config.yLabels.values[STATE.charts[id].selectedIndex]}</div>
+            `;
+            series.forEach(s => {
+                tooltip.innerHTML += `<div><span style="color:${s.color};margin-right:3px;">⬤</span>${s.name} : <span style="">${s.values[STATE.charts[id].selectedIndex]}</span></div>`
+            });
+        }
+    });
+
+    svg.addEventListener("mouseleave", () => {
+        STATE.clientX = undefined;
+        STATE.clientY = undefined;
+        tooltip.remove();
+    });
+
+    return svg as unknown as SVGElement;
+}
+
 const utilLine = {
     makeXyGrid,
     drawLine,
-    createTraps
+    createTraps,
+    createTooltip
 }
 
 export default utilLine;
