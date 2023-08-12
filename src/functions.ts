@@ -215,6 +215,7 @@ export function parseUserDataset(userDataset: any, type = 'object') {
         return JSON.parse(userDataset).map((s: any, i: number) => {
             return {
                 ...s,
+                datasetId: createUid(),
                 color: s.color || palette[i] || palette[i % i],
                 datapoints: []
             }
@@ -223,6 +224,7 @@ export function parseUserDataset(userDataset: any, type = 'object') {
         return userDataset.map((s: any, i: number) => {
             return {
                 ...s,
+                datasetId: createUid(),
                 color: s.color || palette[i] || palette[i % i],
                 datapoints: []
             }

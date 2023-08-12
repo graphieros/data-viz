@@ -27,15 +27,22 @@ export function makeXyGrid({ chart, drawingArea, config }: { chart: SVGElement, 
 export function createTraps({ id, config, drawingArea, maxSeries }: { id: string, config: any, drawingArea: any, maxSeries: number }) {
 
     const svg = XY_STATE[id].svg;
+    const series = XY_STATE[id].dataset.map((d: any) => d.datapoints)
 
     function select(rect: any, i: number) {
         addTo(rect, SvgAttribute.FILL, `${config.line.indicator.color}${opacity[config.line.indicator.opacity]}`);
         XY_STATE[id].selectedIndex = i;
         XY_STATE.isTooltip = true;
+        series.forEach((s: any) => {
+            addTo(s[XY_STATE[id].selectedIndex], SvgAttribute.R, config.line.plots.radius * 1.6);
+        })
     }
     function unselect(rect: any) {
         addTo(rect, SvgAttribute.FILL, "transparent");
         XY_STATE.isTooltip = false;
+        series.forEach((s: any) => {
+            addTo(s[XY_STATE[id].selectedIndex], SvgAttribute.R, config.line.plots.radius);
+        })
         XY_STATE[id].selectedIndex = 0;
     }
 
@@ -56,7 +63,7 @@ export function createTraps({ id, config, drawingArea, maxSeries }: { id: string
     });
 }
 
-export function drawLine({ svg, line, config, palette, index, drawingArea }: { svg: SVGElement, line: any, config: any, palette: string[], index: number, drawingArea: any }) {
+export function drawLine({ datasetId, id, svg, line, config, palette, index, drawingArea }: { datasetId: string, id: string, svg: SVGElement, line: any, config: any, palette: string[], index: number, drawingArea: any }) {
     const color = line.color || palette[index] || palette[index % palette.length];
     let gradientId = "";
     if (config.line.area.useGradient) {
@@ -73,7 +80,6 @@ export function drawLine({ svg, line, config, palette, index, drawingArea }: { s
         svg.appendChild(defs);
     }
 
-
     if (config.line.area.show) {
         const start = { x: line.plots[0].x, y: drawingArea.bottom };
         const end = { x: line.plots.at(-1).x, y: drawingArea.bottom };
@@ -89,17 +95,9 @@ export function drawLine({ svg, line, config, palette, index, drawingArea }: { s
         svg.appendChild(area);
     }
 
+    const thisDataset = XY_STATE[id].dataset.find((d: any) => d.datasetId === datasetId);
+
     line.plots.forEach((plot: any, i: number) => {
-        // plots
-        if (config.line.plots.show && isValidUserValue(plot.value)) {
-            const c = spawnNS(SvgElement.CIRCLE);
-            addTo(c, SvgAttribute.CX, plot.x);
-            addTo(c, SvgAttribute.CY, plot.y);
-            addTo(c, SvgAttribute.R, config.line.plots.radius);
-            addTo(c, SvgAttribute.FILL, color);
-            svg.appendChild(c);
-        }
-        // lines
         if (i < line.plots.length - 1 && isValidUserValue(plot.value) && isValidUserValue(line.plots[i + 1].value)) {
             const l = spawnNS(SvgElement.LINE);
             addTo(l, SvgAttribute.X1, plot.x);
@@ -111,6 +109,21 @@ export function drawLine({ svg, line, config, palette, index, drawingArea }: { s
             addTo(l, SvgAttribute.STROKE_LINECAP, "round");
             addTo(l, SvgAttribute.STROKE_LINEJOIN, "round");
             svg.appendChild(l);
+        }
+    });
+
+    line.plots.forEach((plot: any, i: number) => {
+        // plots
+        if (config.line.plots.show && isValidUserValue(plot.value)) {
+            const c = spawnNS(SvgElement.CIRCLE);
+            addTo(c, SvgAttribute.CX, plot.x);
+            addTo(c, SvgAttribute.CY, plot.y);
+            addTo(c, SvgAttribute.R, config.line.plots.radius);
+            addTo(c, SvgAttribute.FILL, color);
+            addTo(c, SvgAttribute.STROKE, config.line.plots.stroke);
+            addTo(c, SvgAttribute.STROKE_WIDTH, config.line.plots.strokeWidth);
+            thisDataset.datapoints.push(c)
+            svg.appendChild(c);
         }
         // data labels
         if (config.line.dataLabels.show && (Object.hasOwn(line, 'showLabels') ? line.showLabels : true)) {
@@ -143,6 +156,8 @@ export function createTooltip({ id, config }: { id: string, config: any }) {
     tooltip.style.fontFamily = config.fontFamily;
     tooltip.style.color = config.tooltip.color;
     tooltip.style.zIndex = "100";
+    tooltip.style.maxWidth = `${config.tooltip.maxWidth}px`;
+    tooltip.style.transition = config.tooltip.transition;
 
     const series = XY_STATE[id].dataset.map((s: any) => {
         return {

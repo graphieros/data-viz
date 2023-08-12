@@ -121,6 +121,8 @@ function xy(parent: HTMLDivElement) {
         })
         .forEach((line: any, index: number) => drawLine({
             svg: XY_STATE[xyId].svg,
+            id: xyId,
+            datasetId: line.datasetId,
             line,
             config,
             palette,

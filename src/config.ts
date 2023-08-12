@@ -89,6 +89,7 @@ export const configLine = {
         borderRadius: 4,
         boxShadow: "0 6px 12px -3px #2D353C33",
         offsetY: 12,
+        maxWidth: 300,
         value: {
             rounding: 0,
             bold: true,
