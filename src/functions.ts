@@ -215,14 +215,16 @@ export function parseUserDataset(userDataset: any, type = 'object') {
         return JSON.parse(userDataset).map((s: any, i: number) => {
             return {
                 ...s,
-                color: s.color || palette[i] || palette[i % i]
+                color: s.color || palette[i] || palette[i % i],
+                datapoints: []
             }
         });
     } else if (typeof userDataset === 'object') {
         return userDataset.map((s: any, i: number) => {
             return {
                 ...s,
-                color: s.color || palette[i] || palette[i % i]
+                color: s.color || palette[i] || palette[i % i],
+                datapoints: []
             }
         });
     } else {
@@ -275,7 +277,6 @@ export function createSvg({ parent, dimensions, config }: { parent: HTMLDivEleme
     svg.style.background = config.backgroundColor;
     svg.style.color = config.color;
     svg.style.fontFamily = config.fontFamily;
-    addTo(svg, "id", createUid());
     parent.appendChild(svg);
     return svg;
 }

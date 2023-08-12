@@ -1,7 +1,7 @@
 import { DomElement, SvgAttribute, SvgElement } from "./constants";
 import { spawn, spawnNS, addTo, isValidUserValue, createLinearGradient, shiftHue, grabId } from "./functions";
 import { opacity } from "./config";
-import STATE from "./state";
+import XY_STATE from "./state_xy";
 
 export function makeXyGrid({ chart, drawingArea, config }: { chart: SVGElement, drawingArea: any, config: any }) {
     const x = spawnNS(SvgElement.LINE);
@@ -26,17 +26,17 @@ export function makeXyGrid({ chart, drawingArea, config }: { chart: SVGElement, 
 
 export function createTraps({ id, config, drawingArea, maxSeries }: { id: string, config: any, drawingArea: any, maxSeries: number }) {
 
-    const svg = grabId(id);
+    const svg = XY_STATE[id].svg;
 
     function select(rect: any, i: number) {
         addTo(rect, SvgAttribute.FILL, `${config.line.indicator.color}${opacity[config.line.indicator.opacity]}`);
-        STATE.charts[id].selectedIndex = i;
-        STATE.isTooltip = true;
+        XY_STATE[id].selectedIndex = i;
+        XY_STATE.isTooltip = true;
     }
     function unselect(rect: any) {
         addTo(rect, SvgAttribute.FILL, "transparent");
-        STATE.isTooltip = false;
-        STATE.charts[id].selectedIndex = undefined;
+        XY_STATE.isTooltip = false;
+        XY_STATE[id].selectedIndex = 0;
     }
 
     const traps: any = [];
@@ -54,8 +54,6 @@ export function createTraps({ id, config, drawingArea, maxSeries }: { id: string
         trap.addEventListener("mouseout", () => unselect(trap))
         svg.appendChild(trap);
     });
-
-    return svg as unknown as SVGElement;
 }
 
 export function drawLine({ svg, line, config, palette, index, drawingArea }: { svg: SVGElement, line: any, config: any, palette: string[], index: number, drawingArea: any }) {
@@ -130,9 +128,8 @@ export function drawLine({ svg, line, config, palette, index, drawingArea }: { s
     return svg;
 }
 
-export function createTooltip({ id, config, drawingArea }: { id: string, config: any, drawingArea: any }) {
-    const svg = grabId(id);
-    const svgRect = svg.getBoundingClientRect();
+export function createTooltip({ id, config }: { id: string, config: any }) {
+    const svg = XY_STATE[id].svg;
     const tooltip = spawn(DomElement.DIV) as unknown as HTMLDivElement;
     tooltip.classList.add("data-vision-tooltip");
 
@@ -147,7 +144,7 @@ export function createTooltip({ id, config, drawingArea }: { id: string, config:
     tooltip.style.color = config.tooltip.color;
     tooltip.style.zIndex = "100";
 
-    const series = STATE.charts[id].dataset.map(s => {
+    const series = XY_STATE[id].dataset.map((s: any) => {
         return {
             ...s,
             name: s.name,
@@ -157,30 +154,27 @@ export function createTooltip({ id, config, drawingArea }: { id: string, config:
 
     svg.addEventListener("mousemove", (e: any) => {
         tooltip.remove();
-        if (STATE.isTooltip) {
+        if (XY_STATE.isTooltip) {
             document.body.appendChild(tooltip);
             const rect = tooltip.getBoundingClientRect();
-            STATE.clientX = e.clientX - rect.width / 2;
-            STATE.clientY = e.clientY + 24 + config.tooltip.offsetY;
-            // tooltip.style.left = `${STATE.clientX - rect.width / 2}px`;
-            tooltip.style.left = `${STATE.clientX + rect.width > window.innerWidth ? STATE.clientX - rect.width / 2 : STATE.clientX - rect.width < 0 ? STATE.clientX + rect.width / 2 : STATE.clientX}px`;
-            tooltip.style.top = `${STATE.clientY + rect.height > window.innerHeight ? STATE.clientY - (rect.height) - 64 : STATE.clientY}px`;
+            XY_STATE.clientX = e.clientX - rect.width / 2;
+            XY_STATE.clientY = e.clientY + 24 + config.tooltip.offsetY;
+            tooltip.style.left = `${XY_STATE.clientX + rect.width > window.innerWidth ? XY_STATE.clientX - rect.width / 2 : XY_STATE.clientX - rect.width < 0 ? XY_STATE.clientX + rect.width / 2 : XY_STATE.clientX}px`;
+            tooltip.style.top = `${XY_STATE.clientY + rect.height > window.innerHeight ? XY_STATE.clientY - (rect.height) - 64 : XY_STATE.clientY}px`;
             tooltip.innerHTML = `
-                <div style="display:block; width:100%; border-bottom:1px solid #e1e5e8; padding:0 0 6px 0; margin-bottom:6px;">${config.yLabels.values[STATE.charts[id].selectedIndex]}</div>
+                <div style="display:block; width:100%; border-bottom:1px solid #e1e5e8; padding:0 0 6px 0; margin-bottom:6px;">${config.yLabels.values[XY_STATE[id].selectedIndex]}</div>
             `;
-            series.forEach(s => {
-                tooltip.innerHTML += `<div><span style="color:${s.color};margin-right:3px;">⬤</span>${s.name} : <span style="">${s.values[STATE.charts[id].selectedIndex]}</span></div>`
+            series.forEach((s: any) => {
+                tooltip.innerHTML += `<div><span style="color:${s.color};margin-right:3px;">⬤</span>${s.name} : <span style="">${s.values[XY_STATE[id].selectedIndex]}</span></div>`
             });
         }
     });
 
     svg.addEventListener("mouseleave", () => {
-        STATE.clientX = undefined;
-        STATE.clientY = undefined;
+        XY_STATE.clientX = 0;
+        XY_STATE.clientY = 0;
         tooltip.remove();
     });
-
-    return svg as unknown as SVGElement;
 }
 
 const utilLine = {

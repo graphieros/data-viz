@@ -37,7 +37,7 @@ export const opacity = ["00", "03", "05", "08", "0A", "0D", "0F", "12", "14", "1
 export const configLine = {
     backgroundColor: "#FFFFFF",
     color: "#2D353C",
-    fontFamily: "inherit",
+    fontFamily: "Arial",
     height: 316,
     width: 500,
     padding: {
