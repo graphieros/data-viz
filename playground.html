@@ -10,15 +10,21 @@
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
 </head>
 <body>
-    <div 
+    <div
+        width="100%"
         class="data-viz"
-        data-viz-line 
+        data-viz-xy 
         data-viz-set='[
-            "name": "serie1",
-            "values": "[-21, -13, -8, -5, -3, -2, -1, -1, 0, 1, 1, 2, 3, 5, 8, 13, 21]"
+            {"name": "serie1","type":"line","showLabels":true,
+            "values": [-21.4, -13, -8, -5, -3, -2, -1, -1, 0, 1, 1, 2, 3, 5, 8, 13, 21]}
         ]'
         data-viz-config='{
-            "backgroundColor" : "#e1e5e8"
+            "backgroundColor" : "#fafafa",
+            "line": {
+                "plots": {
+                    "show": true
+                }
+            }
         }'
     ></div>  
 </body>

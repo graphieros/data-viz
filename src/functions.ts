@@ -1,3 +1,5 @@
+import { SvgAttribute } from "./constants";
+
 /** Shorthand for element.setAttribute
  * 
  * @param element 
@@ -65,15 +67,6 @@ export function getCssColor(cssClass: string) {
  */
 export function grabId(elementId: string) {
     return document.getElementById(elementId) as HTMLElement;
-}
-
-/** Get an HTMLELement by its data-slide attribute id
- * 
- * @param elementId - string
- * @returns an HTMLElement
- */
-export function grabByData(elementId: string) {
-    return document.querySelector(`[data-slide="${elementId}"]`)
 }
 
 export function logError(error: string) {
@@ -192,6 +185,211 @@ export function findClassNameSuffix({ element, regex, fallback, returnAll = fals
     return fallback;
 }
 
+export function isValidUserValue(val: any) {
+    return ![null, undefined, NaN, Infinity, -Infinity].includes(val);
+}
+
+export function checkArray({ userConfig, key }: { userConfig: any, key: string }) {
+    return Object.hasOwn(userConfig, key) && Array.isArray(userConfig[key]) && userConfig[key].length >= 0;
+}
+
+export function checkObj({ userConfig, key }: { userConfig: any, key: string }) {
+    return Object.hasOwn(userConfig, key) && !Array.isArray(userConfig[key]) && typeof userConfig[key] === "object";
+}
+
+export function parseUserConfig(userConfig: any) {
+    if (typeof userConfig === "string") {
+        userConfig = userConfig.replaceAll(" ", "");
+        return JSON.parse(userConfig);
+    } else if (typeof userConfig === 'object') {
+        return userConfig;
+    } else {
+        return {};
+    }
+}
+
+export function parseUserDataset(userDataset: any, type = 'object') {
+    if (typeof userDataset === "string") {
+        userDataset = userDataset.replaceAll(" ", "");
+        return JSON.parse(userDataset);
+    } else if (typeof userDataset === 'object') {
+        return userDataset;
+    } else {
+        if (type === 'object') {
+            return {}
+        } else {
+            return [];
+        }
+    }
+}
+
+export function treeShake({ userConfig, defaultConfig }: { userConfig: any, defaultConfig: any }) {
+    const finalConfig = { ...defaultConfig };
+
+    Object.keys(finalConfig).forEach(key => {
+        if (Object.hasOwn(userConfig, key)) {
+            const currentVal = userConfig[key]
+            if (typeof currentVal === 'boolean') {
+                finalConfig[key] = currentVal;
+            } else if (["string", "number"].includes(typeof currentVal)) {
+                if (isValidUserValue(currentVal)) {
+                    finalConfig[key] = currentVal;
+                }
+            } else if (Array.isArray(finalConfig[key])) {
+                if (checkArray({ userConfig, key })) {
+                    finalConfig[key] = currentVal;
+                }
+            } else if (checkObj({ userConfig, key })) {
+                finalConfig[key] = treeShake({
+                    defaultConfig: finalConfig[key],
+                    userConfig: currentVal
+                });
+            }
+        }
+    });
+    return finalConfig;
+}
+
+export function clearDataAttributes(node: any) {
+    node.dataset.vizConfig = "ok";
+    node.dataset.vizSet = "ok"
+}
+
+export function createSvg({ parent, dimensions, config }: { parent: HTMLDivElement, dimensions: { x: number, y: number }, config: any }) {
+    const svg = spawnNS("svg");
+    svg.setAttribute('viewBox', `0 0 ${dimensions.x} ${dimensions.y}`);
+    addTo(svg, "xmlns", "http://www.w3.org/2000/svg");
+    addTo(svg, "preserveAspectRatio", "xMinYMid meet");
+    svg.style.width = "100%";
+    svg.style.background = config.backgroundColor;
+    svg.style.color = config.color;
+    svg.style.fontFamily = config.fontFamily;
+    addTo(svg, "id", createUid());
+    parent.appendChild(svg);
+    return svg;
+}
+
+export function createConfig({ userConfig, defaultConfig }: { userConfig: any, defaultConfig: any }) {
+    return treeShake({
+        userConfig,
+        defaultConfig
+    });
+}
+
+export function getDrawingArea(config: any) {
+    const { top, right, bottom, left } = config.padding;
+    const { height, width } = config;
+
+    return {
+        top,
+        left,
+        right: width - right,
+        bottom: height - bottom,
+        width: width - left - right,
+        height: height - top - bottom
+    }
+}
+
+export function shiftHue(hexColor: string, shiftAmount: number) {
+    const hexToRgb = (hex: string) => ({
+        r: parseInt(hex.substring(1, 3), 16),
+        g: parseInt(hex.substring(3, 5), 16),
+        b: parseInt(hex.substring(5, 7), 16),
+    });
+
+    const rgbToHsl = ({ r, g, b }: { r: number, g: number, b: number }) => {
+        r /= 255;
+        g /= 255;
+        b /= 255;
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        let h, s, l = (max + min) / 2;
+
+        if (max === min) {
+            h = s = 0;
+        } else {
+            const d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            switch (max) {
+                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                case g: h = (b - r) / d + 2; break;
+                case b: h = (r - g) / d + 4; break;
+            }
+            if (h) {
+                h /= 6;
+            }
+        }
+        return { h, s, l };
+    };
+
+    const hslToRgb = ({ h, s, l }: { h: number, s: number, l: number }) => {
+        let r, g, b;
+
+        if (s === 0) {
+            r = g = b = l;
+        } else {
+            const hue2rgb = (p: number, q: number, t: number) => {
+                if (t < 0) t += 1;
+                if (t > 1) t -= 1;
+                if (t < 1 / 6) return p + (q - p) * 6 * t;
+                if (t < 1 / 2) return q;
+                if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+                return p;
+            };
+
+            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            const p = 2 * l - q;
+            r = hue2rgb(p, q, h + 1 / 3);
+            g = hue2rgb(p, q, h);
+            b = hue2rgb(p, q, h - 1 / 3);
+        }
+
+        return {
+            r: Math.round(r * 255),
+            g: Math.round(g * 255),
+            b: Math.round(b * 255),
+        };
+    };
+
+    const rgbColor = hexToRgb(hexColor);
+    const hslColor = rgbToHsl(rgbColor);
+    if (hslColor.h) {
+        hslColor.h += shiftAmount;
+    }
+    hslColor.h = ((hslColor.h || 0) + 1) % 1;
+
+    const shiftedRgbColor = hslToRgb({ h: hslColor.h, s: hslColor.s, l: hslColor.l });
+    const shiftedHexColor = `#${(shiftedRgbColor.r << 16 | shiftedRgbColor.g << 8 | shiftedRgbColor.b).toString(16).padStart(6, '0')}`;
+
+    return shiftedHexColor;
+}
+
+export function createLinearGradient({ defs, direction, start, end }: { defs: SVGDefsElement, direction: "x" | "y", start: string, end: string }) {
+    const lg = spawnNS("linearGradient");
+
+    const id = createUid();
+
+    if (direction === 'x') {
+        addTo(lg, SvgAttribute.X1, "0%");
+        addTo(lg, SvgAttribute.X2, "100%");
+        addTo(lg, SvgAttribute.Y1, "0%");
+        addTo(lg, SvgAttribute.Y2, "0%");
+        addTo(lg, "id", id);
+    }
+
+    const stop1 = spawnNS("stop");
+    addTo(stop1, "offset", "0%");
+    addTo(stop1, "stop-color", start);
+
+    const stop2 = spawnNS("stop");
+    addTo(stop2, "offset", "100%");
+    addTo(stop2, "stop-color", end);
+
+    [stop1, stop2].forEach(s => lg.appendChild(s));
+
+    defs.appendChild(lg);
+    return `url(#${id})`;
+}
 
 const utils = {
     addTo,
@@ -201,7 +399,6 @@ const utils = {
     findClosestAncestorByClassName,
     getCssColor,
     grabId,
-    grabByData,
     logError,
     reorderArrayByIndex,
     setSvgAttribute,
@@ -211,7 +408,16 @@ const utils = {
     translateX,
     translateY,
     updateCssClasses,
-    walkTheDOM
+    walkTheDOM,
+    createSvg,
+    createConfig,
+    parseUserConfig,
+    parseUserDataset,
+    clearDataAttributes,
+    getDrawingArea,
+    isValidUserValue,
+    createLinearGradient,
+    shiftHue
 };
 
 export default utils;
