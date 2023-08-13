@@ -11,8 +11,7 @@ import {
 import {
     makeXyGrid,
     drawLine,
-    createTraps,
-    createTooltip
+    createTraps
 } from "./util-line"
 
 import {
@@ -21,6 +20,9 @@ import {
 } from "./config"
 import { Chart } from "./constants";
 import XY_STATE from "./state_xy";
+import { createTooltip } from "./tooltip";
+import { createTitle } from "./titleg";
+import { createLegend } from "./legend";
 
 function nuke(attr = "") {
     const all = document.getElementsByClassName("data-vision") as any;
@@ -87,6 +89,7 @@ function xy(parent: HTMLDivElement) {
 
     Object.assign(XY_STATE, {
         [xyId]: {
+            parent,
             type: "xy",
             config,
             dataset,
@@ -104,6 +107,8 @@ function xy(parent: HTMLDivElement) {
     function ratioToMax(val: number) {
         return (val + relativeZero) / absoluteMax;
     }
+
+    makeXyGrid({ id: xyId, state: XY_STATE });
 
     XY_STATE[xyId].dataset
         .filter((d: any) => d.type === Chart.LINE)
@@ -130,17 +135,10 @@ function xy(parent: HTMLDivElement) {
             drawingArea
         }));
 
-    createTraps({
-        id: xyId,
-        config,
-        drawingArea,
-        maxSeries
-    });
-
-    createTooltip({
-        id: xyId,
-        config
-    });
+    createTraps({ id: xyId, state: XY_STATE });
+    createTooltip({ id: xyId, state: XY_STATE });
+    createTitle({ id: xyId, state: XY_STATE });
+    createLegend({ id: xyId, state: XY_STATE });
 
     clearDataAttributes(parent);
 }

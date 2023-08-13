@@ -80,6 +80,22 @@ export const configLine = {
         values: [],
         showOnlyFirstAndLast: true,
     },
+    title: {
+        useDiv: true,
+        show: true,
+        text: "",
+        fontSize: 20,
+        bold: true,
+        color: "#2D353C",
+        backgroundColor: "#FFFFFF",
+        offsetY: 0,
+        subtitle: {
+            text: "",
+            fontSize: 16,
+            bold: false,
+            color: "#CCCCCC",
+        }
+    },
     tooltip: {
         backgroundColor: "#FFFFFF",
         color: "#2D353C",

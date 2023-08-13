@@ -4,7 +4,7 @@ import "@/css/index.css";
 
 if (typeof window !== undefined) {
 
-    const DataViz = (function main(
+    const DataVision = (function main(
         createCharts,
     ) {
         // Private
@@ -22,6 +22,6 @@ if (typeof window !== undefined) {
         createCharts,
     ));
 
-    (window as unknown as W).DataViz = DataViz
+    (window as unknown as W).DataVision = DataVision
 }
 

@@ -279,6 +279,7 @@ export function createSvg({ parent, dimensions, config }: { parent: HTMLDivEleme
     svg.style.background = config.backgroundColor;
     svg.style.color = config.color;
     svg.style.fontFamily = config.fontFamily;
+    svg.style.overflow = "visible";
     parent.appendChild(svg);
     return svg;
 }
@@ -300,7 +301,8 @@ export function getDrawingArea(config: any) {
         right: width - right,
         bottom: height - bottom,
         width: width - left - right,
-        height: height - top - bottom
+        height: height - top - bottom,
+        fullWidth: width,
     }
 }
 

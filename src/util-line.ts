@@ -3,7 +3,11 @@ import { spawn, spawnNS, addTo, isValidUserValue, createLinearGradient, shiftHue
 import { opacity } from "./config";
 import XY_STATE from "./state_xy";
 
-export function makeXyGrid({ chart, drawingArea, config }: { chart: SVGElement, drawingArea: any, config: any }) {
+export function makeXyGrid({ id, state }: { id: string, state: any }) {
+    const drawingArea = state[id].drawingArea;
+    const config = state[id].config;
+    const svg = state[id].svg;
+
     const x = spawnNS(SvgElement.LINE);
     addTo(x, SvgAttribute.X1, drawingArea.left);
     addTo(x, SvgAttribute.X2, drawingArea.right);
@@ -20,30 +24,32 @@ export function makeXyGrid({ chart, drawingArea, config }: { chart: SVGElement, 
     addTo(y, SvgAttribute.STROKE, config.grid.stroke);
     addTo(y, SvgAttribute.STROKE_WIDTH, config.grid.strokeWidth);
 
-    [x, y].forEach(line => chart.appendChild(line));
-    return chart;
+    [x, y].forEach(line => svg.appendChild(line));
 }
 
-export function createTraps({ id, config, drawingArea, maxSeries }: { id: string, config: any, drawingArea: any, maxSeries: number }) {
+export function createTraps({ id, state }: { id: string, state: any }) {
 
-    const svg = XY_STATE[id].svg;
-    const series = XY_STATE[id].dataset.map((d: any) => d.datapoints)
+    const svg = state[id].svg;
+    const series = state[id].dataset.map((d: any) => d.datapoints);
+    const config = state[id].config;
+    const maxSeries = state[id].maxSeries;
+    const drawingArea = state[id].drawingArea;
 
     function select(rect: any, i: number) {
         addTo(rect, SvgAttribute.FILL, `${config.line.indicator.color}${opacity[config.line.indicator.opacity]}`);
-        XY_STATE[id].selectedIndex = i;
-        XY_STATE.isTooltip = true;
+        state[id].selectedIndex = i;
+        state.isTooltip = true;
         series.forEach((s: any) => {
-            addTo(s[XY_STATE[id].selectedIndex], SvgAttribute.R, config.line.plots.radius * 1.6);
+            addTo(s[state[id].selectedIndex], SvgAttribute.R, config.line.plots.radius * 1.6);
         })
     }
     function unselect(rect: any) {
         addTo(rect, SvgAttribute.FILL, "transparent");
-        XY_STATE.isTooltip = false;
+        state.isTooltip = false;
         series.forEach((s: any) => {
-            addTo(s[XY_STATE[id].selectedIndex], SvgAttribute.R, config.line.plots.radius);
+            addTo(s[state[id].selectedIndex], SvgAttribute.R, config.line.plots.radius);
         })
-        XY_STATE[id].selectedIndex = 0;
+        state[id].selectedIndex = 0;
     }
 
     const traps: any = [];
