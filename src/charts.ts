@@ -21,7 +21,7 @@ import {
 import { Chart } from "./constants";
 import XY_STATE from "./state_xy";
 import { createTooltip } from "./tooltip";
-import { createTitle } from "./titleg";
+import { createTitle } from "./title";
 import { createLegend } from "./legend";
 
 function nuke(attr = "") {
@@ -48,8 +48,7 @@ export function createCharts(attr = "") {
                 return node.hasAttribute("data-vision-xy")
             });
             nuke("data-vision-xy");
-            lines.forEach(line => xy(line as unknown as HTMLDivElement))
-            // lines.forEach(line => createXyChart(line as unknown as HTMLDivElement))
+            lines.forEach(line => xy(line as unknown as HTMLDivElement));
         }
     }
 }
@@ -108,19 +107,10 @@ function xy(parent: HTMLDivElement) {
         }
     });
 
-    function ratioToMax(val: number) {
-        return (val + relativeZero) / absoluteMax;
-    }
-
-    // makeXyGrid({ id: xyId, state: XY_STATE });
-
     drawChart({
         state: XY_STATE,
         id: xyId
     });
-
-    createTitle({ id: xyId, state: XY_STATE });
-    createLegend({ id: xyId, state: XY_STATE });
 }
 
 export function drawChart({ state, id }: { state: any, id: string }) {
@@ -152,7 +142,7 @@ export function drawChart({ state, id }: { state: any, id: string }) {
         return (val + relativeZero) / absoluteMax;
     }
 
-    makeXyGrid({ id, state });
+    makeXyGrid({ id, state, relativeZero, absoluteMax, max, min, maxSeries, slot });
 
     mutedDataset
         .map((d: any) => {
@@ -179,7 +169,9 @@ export function drawChart({ state, id }: { state: any, id: string }) {
         }));
 
     createTooltip({ id, state: XY_STATE });
-    createTraps({ id, state: XY_STATE });
+    createTraps({ id, state: XY_STATE, maxSeries });
+    createTitle({ id, state: XY_STATE });
+    createLegend({ id, state: XY_STATE });
     //createTable({ id: xyId, state: XY_STATE});
 
     clearDataAttributes(parent);

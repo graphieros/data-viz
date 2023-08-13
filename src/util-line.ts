@@ -1,9 +1,70 @@
 import { DomElement, SvgAttribute, SvgElement } from "./constants";
-import { spawn, spawnNS, addTo, isValidUserValue, createLinearGradient, shiftHue, grabId } from "./functions";
+import { spawn, spawnNS, addTo, isValidUserValue, createLinearGradient, shiftHue, closestDecimal } from "./functions";
 import { opacity } from "./config";
 import XY_STATE from "./state_xy";
 
-export function makeXyGrid({ id, state }: { id: string, state: any }) {
+export function createYLabels({ id, svg, config, drawingArea, relativeZero, absoluteMax, max, min, zero }: { id: string, svg: any, config: any, drawingArea: any, relativeZero: number, absoluteMax: number, max: number, min: number, zero: any }) {
+
+    const positiveStep = closestDecimal(max / 5);
+    const positiveSteps = [];
+    for (let i = 5; i > 0; i -= 1) {
+        const value = positiveStep * i;
+        positiveSteps.push({
+            y: zero.y1 - (drawingArea.height * ((positiveStep * i) / absoluteMax)),
+            value
+        });
+    }
+    const negativeStep = closestDecimal(min / 5);
+    const negativeSteps = [];
+    for (let i = 5; i >= 0; i -= 1) {
+        const value = Math.abs(negativeStep) * i;
+        negativeSteps.push({
+            y: zero.y1 + (drawingArea.height * ((Math.abs(negativeStep) * i) / absoluteMax)),
+            value: -value
+        });
+    }
+    [...positiveSteps, ...negativeSteps].forEach((step: any) => {
+        const yLabel = spawnNS(SvgElement.TEXT);
+        addTo(yLabel, SvgAttribute.FILL, config.grid.yLabels.color);
+        addTo(yLabel, "font-size", config.grid.yLabels.fontSize);
+        addTo(yLabel, "font-weight", config.grid.yLabels.bold ? "bold" : "normal");
+        addTo(yLabel, SvgAttribute.X, drawingArea.left - 12 + config.grid.yLabels.offsetX);
+        addTo(yLabel, SvgAttribute.Y, step.y + config.grid.yLabels.fontSize / 3);
+        addTo(yLabel, SvgAttribute.TEXT_ANCHOR, "end");
+        yLabel.textContent = Number(step.value.toFixed(config.grid.yLabels.rounding)).toLocaleString();
+
+        const yTick = spawnNS(SvgElement.LINE);
+        addTo(yTick, SvgAttribute.STROKE, config.grid.stroke);
+        addTo(yTick, SvgAttribute.STROKE_WIDTH, 1);
+        addTo(yTick, SvgAttribute.X1, drawingArea.left);
+        addTo(yTick, SvgAttribute.X2, drawingArea.left - 6);
+        addTo(yTick, SvgAttribute.Y1, step.y);
+        addTo(yTick, SvgAttribute.Y2, step.y);
+        if (step.value > max || step.value < min) return;
+        [yLabel, yTick].forEach((el: any) => svg.appendChild(el));
+    });
+}
+
+function createXLabels({ id, state, config, drawingArea, svg, maxSeries, slot }: { id: any, state: any, config: any, drawingArea: any, svg: any, maxSeries: number, slot: number }) {
+
+    console.log({ slot })
+
+    for (let i = 0; i < maxSeries; i += 1) {
+        const xLabel = spawnNS(SvgElement.TEXT);
+        addTo(xLabel, SvgAttribute.X, drawingArea.left + (slot * i) + (slot / 2));
+        addTo(xLabel, SvgAttribute.Y, drawingArea.bottom + 12 + config.grid.xLabels.fontSize + config.grid.xLabels.offsetY);
+        addTo(xLabel, SvgAttribute.TEXT_ANCHOR, "middle");
+        addTo(xLabel, "font-size", config.grid.xLabels.fontSize);
+        addTo(xLabel, SvgAttribute.FILL, config.grid.xLabels.color);
+        addTo(xLabel, "font-weight", config.grid.xLabels.bold ? 'bold' : 'normal');
+        xLabel.textContent = config.grid.xLabels.values[i];
+        if (!config.grid.xLabels.showOnlyFirstAndLast || (config.grid.xLabels.showOnlyFirstAndLast && (i === 0 || i === maxSeries - 1))) {
+            svg.appendChild(xLabel);
+        }
+    }
+}
+
+export function makeXyGrid({ id, state, relativeZero, absoluteMax, max, min, maxSeries, slot }: { id: string, state: any, relativeZero: number, absoluteMax: number, max: number, min: number, maxSeries: number, slot: number }) {
     const drawingArea = state[id].drawingArea;
     const config = state[id].config;
     const svg = state[id].svg;
@@ -26,16 +87,57 @@ export function makeXyGrid({ id, state }: { id: string, state: any }) {
 
     [x, y].forEach(line => svg.appendChild(line));
 
-    // TODO: zero line
-    // TODO yAxis labels
+    const zero = {
+        x1: drawingArea.left,
+        x2: drawingArea.right,
+        y1: drawingArea.bottom - (drawingArea.height * (relativeZero / absoluteMax)),
+        y2: drawingArea.bottom - (drawingArea.height * (relativeZero / absoluteMax)),
+    };
+
+    if (state[id].relativeZero > 0) {
+        const zeroLine = spawnNS(SvgElement.LINE);
+        addTo(zeroLine, SvgAttribute.X1, zero.x1);
+        addTo(zeroLine, SvgAttribute.X2, zero.x2);
+        addTo(zeroLine, SvgAttribute.Y1, zero.y1);
+        addTo(zeroLine, SvgAttribute.Y2, zero.y2);
+        addTo(zeroLine, SvgAttribute.STROKE, config.line.zeroLine.stroke);
+        addTo(zeroLine, SvgAttribute.STROKE_WIDTH, config.line.zeroLine.strokeWidth);
+        addTo(zeroLine, "stroke-dasharray", config.line.zeroLine.strokeWidth * 2);
+        svg.appendChild(zeroLine);
+    }
+
+    if (config.grid.yLabels.show && state[id].segregatedDatasets.length < state[id].dataset.length) {
+        createYLabels({
+            id,
+            svg,
+            config,
+            drawingArea,
+            relativeZero,
+            absoluteMax,
+            max,
+            min,
+            zero
+        });
+    }
+
+    if (config.grid.xLabels.show && config.grid.xLabels.values.length) {
+        createXLabels({
+            id,
+            state,
+            config,
+            drawingArea,
+            svg,
+            maxSeries,
+            slot
+        });
+    }
 }
 
-export function createTraps({ id, state }: { id: string, state: any }) {
+export function createTraps({ id, state, maxSeries }: { id: string, state: any, maxSeries: number }) {
 
     const svg = state[id].svg;
     const series = state[id].dataset.map((d: any) => d.datapoints);
     const config = state[id].config;
-    const maxSeries = state[id].maxSeries;
     const drawingArea = state[id].drawingArea;
 
     function select(rect: any, i: number) {
@@ -43,14 +145,18 @@ export function createTraps({ id, state }: { id: string, state: any }) {
         state[id].selectedIndex = i;
         state.isTooltip = true;
         series.forEach((s: any) => {
-            addTo(s[state[id].selectedIndex], SvgAttribute.R, config.line.plots.radius * 1.6);
+            if (s[state[id].selectedIndex]) {
+                addTo(s[state[id].selectedIndex], SvgAttribute.R, config.line.plots.radius * 1.6);
+            }
         })
     }
     function unselect(rect: any) {
         addTo(rect, SvgAttribute.FILL, "transparent");
         state.isTooltip = false;
         series.forEach((s: any) => {
-            addTo(s[state[id].selectedIndex], SvgAttribute.R, config.line.plots.radius);
+            if (s[state[id].selectedIndex]) {
+                addTo(s[state[id].selectedIndex], SvgAttribute.R, config.line.plots.radius);
+            }
         })
         state[id].selectedIndex = 0;
     }

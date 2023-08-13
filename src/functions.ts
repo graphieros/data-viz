@@ -307,6 +307,7 @@ export function getDrawingArea(config: any) {
         width: width - left - right,
         height: height - top - bottom,
         fullWidth: width,
+        fullHeight: height
     }
 }
 
@@ -411,6 +412,22 @@ export function createLinearGradient({ defs, direction, start, end }: { defs: SV
     return `url(#${id})`;
 }
 
+export function closestDecimal(val: number) {
+    if (val === 0) return 0;
+
+    const orderOfMagnitude = Math.floor(Math.log10(Math.abs(val)));
+    const powerOf10 = 10 ** orderOfMagnitude;
+
+    let roundedValue;
+    if (val < 0) {
+        roundedValue = Math.round(val / powerOf10) * powerOf10;
+    } else {
+        roundedValue = Math.round(val / powerOf10) * powerOf10;
+    }
+
+    return roundedValue;
+}
+
 const utils = {
     addTo,
     applyEllipsis,
@@ -437,7 +454,8 @@ const utils = {
     getDrawingArea,
     isValidUserValue,
     createLinearGradient,
-    shiftHue
+    shiftHue,
+    closestDecimal
 };
 
 export default utils;

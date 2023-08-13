@@ -7,9 +7,15 @@ export function createTitle({ id, state }: { id: string, state: any }) {
     const hasTitleText = !!config.title.text;
     if (!hasTitleText || !config.title.show) return;
 
+    const oldTitle = document.getElementById(`title_${id}`);
+    if (oldTitle) {
+        oldTitle.remove();
+    }
+
     if (config.title.useDiv) {
         const parent = state[id].parent;
         const titleContainer = spawn("DIV");
+        addTo(titleContainer, "id", `title_${id}`);
         titleContainer.style.width = "100%";
         titleContainer.style.display = "flex";
         titleContainer.style.flexDirection = "column";

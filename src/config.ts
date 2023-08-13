@@ -37,7 +37,7 @@ export const opacity = ["00", "03", "05", "08", "0A", "0D", "0F", "12", "14", "1
 export const configLine = {
     backgroundColor: "#FFFFFF",
     color: "#2D353C",
-    fontFamily: "Arial",
+    fontFamily: "inherit",
     height: 316,
     width: 500,
     padding: {
@@ -49,7 +49,24 @@ export const configLine = {
     grid: {
         show: true,
         stroke: "#e1e5e8",
-        strokeWidth: 1
+        strokeWidth: 1,
+        yLabels: {
+            show: true,
+            fontSize: 12,
+            bold: false,
+            offsetX: 0,
+            color: "#2D353C",
+            rounding: 0,
+        },
+        xLabels: {
+            show: true,
+            showOnlyFirstAndLast: true,
+            values: [],
+            fontSize: 8,
+            bold: false,
+            offsetY: 0,
+            color: "#2D353C"
+        }
     },
     line: {
         strokeWidth: 2,
@@ -79,11 +96,11 @@ export const configLine = {
         indicator: {
             color: "#2D353C",
             opacity: 5,
+        },
+        zeroLine: {
+            stroke: "#CCCCCC",
+            strokeWidth: 1
         }
-    },
-    yLabels: {
-        values: [],
-        showOnlyFirstAndLast: true,
     },
     title: {
         useDiv: true,
@@ -110,7 +127,7 @@ export const configLine = {
         offsetY: 0,
         bold: true,
         roundingValue: 0,
-        padding: "12px"
+        paddingY: 12,
     },
     tooltip: {
         backgroundColor: "#FFFFFF",

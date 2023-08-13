@@ -18,24 +18,30 @@
             {"name": "serie 1","type":"line","showLabels":true,
             "values": [11, -13, -8, -5, -3, -2, -1, -1, 0, 1, 1, 2, 3, 5, 8, 13, 21]},
             {"name": "serie 2","type":"line","showLabels":true,
-            "values": [21, 13, 8, 5, 3, 2, 1, 1, 0, -1, -1, -2, -3, -5, -8, -13, -21]}
+            "values": [0, -1, -1, -2, -3, -5, -8, -13, -21]}
         ]'
         data-vision-config='{
             "backgroundColor" : "#fafafa",
+            "fontFamily": "Arial",
             "line": {
                 "plots": {
                     "show": true
                 }
             },
-            "yLabels": {
-                "values": ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC", "JAN", "FEV", "MAR", "APR", "MAY"]
+            "grid": {
+                "xLabels": {
+                    "values": ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC", "JAN", "FEV", "MAR", "APR", "MAY"]
+                }
             },
             "title": {
-                "useDiv": false,
+                "useDiv": true,
                 "text": "Title",
                 "subtitle": {
                     "text": "Subtitle"
                 }
+            },
+            "legend" : {
+                "useDiv": true
             }
         }'
     ></div>  

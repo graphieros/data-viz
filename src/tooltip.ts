@@ -42,8 +42,17 @@ export function createTooltip({ id, state }: { id: string, state: any }) {
         const datasetRef = state[id].dataset.filter((ds: any) => !state[id].segregatedDatasets.includes(ds.datasetId));
 
         svg.addEventListener("mousemove", (e: any) => {
-            const average = datasetRef.map((ds: any) => ds.values[state[id].selectedIndex]).reduce((a: number, b: number) => a + b, 0) / datasetRef.length;
-            const total = datasetRef.map((ds: any) => ds.values[state[id].selectedIndex]).reduce((a: number, b: number) => a + b, 0);
+            const average = datasetRef
+                .map((ds: any) => ds.values[state[id].selectedIndex])
+                .filter((v: number) => !isNaN(v))
+                .reduce((a: number, b: number) => a + b, 0) / datasetRef.map((ds: any) => ds.values[state[id].selectedIndex])
+                    .filter((v: number) => !isNaN(v)).length;
+
+            const total = datasetRef
+                .map((ds: any) => ds.values[state[id].selectedIndex])
+                .filter((v: number) => !isNaN(v))
+                .reduce((a: number, b: number) => a + b, 0);
+
             if (state.isTooltip) {
                 tooltip.style.display = "initial";
                 const rect = tooltip.getBoundingClientRect();
@@ -53,7 +62,7 @@ export function createTooltip({ id, state }: { id: string, state: any }) {
                 tooltip.style.top = `${state.clientY + rect.height > window.innerHeight ? state.clientY - (rect.height) - 64 : state.clientY}px`;
                 let html = ``;
                 html += `
-                    <div style="display:block; width:100%; border-bottom:1px solid #e1e5e8; padding:0 0 6px 0; margin-bottom:6px;"><b>${config.yLabels.values[state[id].selectedIndex]}</b>
+                    <div style="display:block; width:100%; border-bottom:1px solid #e1e5e8; padding:0 0 6px 0; margin-bottom:6px;"><b>${config.grid.xLabels.values[state[id].selectedIndex]}</b>
                 `;
 
                 if (config.tooltip.total.show) {
@@ -69,7 +78,7 @@ export function createTooltip({ id, state }: { id: string, state: any }) {
                 html += "</div>";
                 series.forEach((s: any) => {
                     const percentage = s.values[state[id].selectedIndex] / total * 100;
-                    html += `<div><span style="color:${s.color};margin-right:3px;">⬤</span>${s.name} : <b>${s.values[state[id].selectedIndex]}</b>`;
+                    html += `<div><span style="color:${s.color};margin-right:3px;">⬤</span>${s.name} : <b>${isNaN(s.values[state[id].selectedIndex]) ? '-' : s.values[state[id].selectedIndex]}</b>`;
                     if (config.tooltip.percentage.show) {
                         html += `<span style="margin-left:3px;">(${isNaN(percentage) ? '-' : Number((percentage).toFixed(config.tooltip.percentage.rounding)).toLocaleString()}%)</span>`
                     }

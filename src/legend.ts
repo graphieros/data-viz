@@ -1,5 +1,6 @@
 import { drawChart } from "./charts";
-import { spawn, spawnNS } from "./functions";
+import { SvgAttribute } from "./constants";
+import { addTo, spawn, spawnNS } from "./functions";
 
 export function segregate({ datasetId, id, state, legendItem }: { datasetId: string, id: string, state: any, legendItem: any }) {
 
@@ -19,12 +20,10 @@ export function segregate({ datasetId, id, state, legendItem }: { datasetId: str
         state[id].dataset.find((el: any) => el.datasetId === datasetId).dataLabels.forEach((dataLabel: any) => dataLabel.style.opacity = "0");
         state[id].dataset.find((el: any) => el.datasetId === datasetId).areas.forEach((area: any) => area.style.opacity = "0");
     }
-
-    console.log(state[id].segregatedDatasets)
     drawChart({
         state,
         id
-    })
+    });
 }
 
 export function createLegend({ id, state }: { id: string, state: any }) {
@@ -32,13 +31,22 @@ export function createLegend({ id, state }: { id: string, state: any }) {
 
     if (!config.legend.show) return;
 
+    const oldLegend = document.getElementById(`legend_${id}`);
+    if (oldLegend) {
+        oldLegend.remove();
+    }
+
     const legendWrapper = spawn("DIV");
+    addTo(legendWrapper, "id", `legend_${id}`);
     legendWrapper.style.width = "100%";
-    legendWrapper.style.background = config.legend.backgroundColor;
+    if (config.legend.useDiv) {
+        legendWrapper.style.background = config.legend.backgroundColor;
+    }
     legendWrapper.style.color = config.legend.color;
     legendWrapper.style.fontSize = `${config.legend.fontSize}px`;
+    legendWrapper.style.fontFamily = config.fontFamily;
     legendWrapper.style.fontWeight = config.legend.bold ? 'bold' : 'normal';
-    legendWrapper.style.padding = config.legend.padding;
+    legendWrapper.style.padding = `${config.legend.paddingY}px 0`;
     legendWrapper.style.display = "flex";
     legendWrapper.style.flexWrap = "wrap";
     legendWrapper.style.alignItems = "center";
@@ -49,6 +57,7 @@ export function createLegend({ id, state }: { id: string, state: any }) {
     dataset.forEach((ds: any) => {
         const legendItem = spawn("DIV");
         legendItem.style.display = "flex";
+        legendItem.style.cursor = "pointer";
         legendItem.style.flexDirection = "flex-row";
         legendItem.style.alignItems = "center";
         legendItem.style.justifyContent = "center";
@@ -56,16 +65,25 @@ export function createLegend({ id, state }: { id: string, state: any }) {
         legendItem.innerHTML = `<span style="color:${ds.color}">⬤</span><span>${ds.name}</span>`
         legendWrapper.appendChild(legendItem);
         legendItem.addEventListener("click", () => segregate({ datasetId: ds.datasetId, id, state, legendItem }))
-    })
+        if (state[id].segregatedDatasets.includes(ds.datasetId)) {
+            legendItem.style.opacity = "0.5";
+        } else {
+            legendItem.style.opacity = "1";
+        }
+    });
 
     if (config.legend.useDiv) {
         parent.appendChild(legendWrapper);
-
     } else {
-        // inject in foreignObject
+        const foreignObject = spawnNS("foreignObject");
+        addTo(foreignObject, SvgAttribute.X, "0");
+        addTo(foreignObject, SvgAttribute.Y, drawingArea.bottom);
+        addTo(foreignObject, "width", drawingArea.fullWidth);
+        addTo(foreignObject, "height", drawingArea.fullHeight - drawingArea.bottom);
+        foreignObject.style.overflow = "visible";
+        foreignObject.appendChild(legendWrapper);
+        svg.appendChild(foreignObject);
     }
-
-    console.log(state[id])
 }
 
 const legend = {
