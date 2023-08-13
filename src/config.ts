@@ -53,6 +53,11 @@ export const configLine = {
     },
     line: {
         strokeWidth: 2,
+        progression: {
+            // TODO
+            show: true,
+            strokeWidth: 1,
+        },
         plots: {
             show: true,
             radius: 3,
@@ -96,6 +101,17 @@ export const configLine = {
             color: "#CCCCCC",
         }
     },
+    legend: {
+        useDiv: true,
+        show: true,
+        fontSize: 14,
+        color: "#2D353C",
+        backgroundColor: "#FFFFFF",
+        offsetY: 0,
+        bold: true,
+        roundingValue: 0,
+        padding: "12px"
+    },
     tooltip: {
         backgroundColor: "#FFFFFF",
         color: "#2D353C",
@@ -111,7 +127,18 @@ export const configLine = {
             bold: true,
         },
         percentage: {
-
+            show: true,
+            rounding: 0,
+        },
+        average: {
+            translation: "Average",
+            show: true,
+            rounding: 0
+        },
+        total: {
+            translation: "Total",
+            show: true,
+            rounding: 0
         }
     }
 

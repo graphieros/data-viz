@@ -25,6 +25,9 @@ export function makeXyGrid({ id, state }: { id: string, state: any }) {
     addTo(y, SvgAttribute.STROKE_WIDTH, config.grid.strokeWidth);
 
     [x, y].forEach(line => svg.appendChild(line));
+
+    // TODO: zero line
+    // TODO yAxis labels
 }
 
 export function createTraps({ id, state }: { id: string, state: any }) {
@@ -72,6 +75,9 @@ export function createTraps({ id, state }: { id: string, state: any }) {
 export function drawLine({ datasetId, id, svg, line, config, palette, index, drawingArea }: { datasetId: string, id: string, svg: SVGElement, line: any, config: any, palette: string[], index: number, drawingArea: any }) {
     const color = line.color || palette[index] || palette[index % palette.length];
     let gradientId = "";
+
+    const thisDataset = XY_STATE[id].dataset.find((d: any) => d.datasetId === datasetId);
+
     if (config.line.area.useGradient) {
         const defs = spawnNS("defs") as SVGDefsElement;
         const direction = "x";
@@ -86,6 +92,12 @@ export function drawLine({ datasetId, id, svg, line, config, palette, index, dra
         svg.appendChild(defs);
     }
 
+    // CLEAR STATE
+    thisDataset.lines = [];
+    thisDataset.areas = [];
+    thisDataset.datapoints = [];
+    thisDataset.dataLabels = [];
+
     if (config.line.area.show) {
         const start = { x: line.plots[0].x, y: drawingArea.bottom };
         const end = { x: line.plots.at(-1).x, y: drawingArea.bottom };
@@ -98,10 +110,9 @@ export function drawLine({ datasetId, id, svg, line, config, palette, index, dra
         addTo(area, SvgAttribute.D, `M${areaPath}Z`);
         addTo(area, SvgAttribute.FILL, config.line.area.useGradient ? gradientId : `${color}${opacity[config.line.area.opacity]}`);
         addTo(area, SvgAttribute.STROKE, "none");
+        thisDataset.areas.push(area);
         svg.appendChild(area);
     }
-
-    const thisDataset = XY_STATE[id].dataset.find((d: any) => d.datasetId === datasetId);
 
     line.plots.forEach((plot: any, i: number) => {
         if (i < line.plots.length - 1 && isValidUserValue(plot.value) && isValidUserValue(line.plots[i + 1].value)) {
@@ -114,6 +125,7 @@ export function drawLine({ datasetId, id, svg, line, config, palette, index, dra
             addTo(l, SvgAttribute.STROKE_WIDTH, config.line.strokeWidth);
             addTo(l, SvgAttribute.STROKE_LINECAP, "round");
             addTo(l, SvgAttribute.STROKE_LINEJOIN, "round");
+            thisDataset.lines.push(l);
             svg.appendChild(l);
         }
     });
@@ -140,9 +152,12 @@ export function drawLine({ datasetId, id, svg, line, config, palette, index, dra
             addTo(t, SvgAttribute.FONT_SIZE, config.line.dataLabels.fontSize);
             addTo(t, SvgAttribute.FILL, config.line.dataLabels.color);
             t.innerHTML = Number(plot.value.toFixed(config.line.dataLabels.roundingValue)).toLocaleString();
+            thisDataset.dataLabels.push(t);
             svg.appendChild(t);
         }
-    })
+    });
+
+    // TODO: createProgressionLine
 
     return svg;
 }

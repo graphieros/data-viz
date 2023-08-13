@@ -200,7 +200,6 @@ export function checkObj({ userConfig, key }: { userConfig: any, key: string }) 
 
 export function parseUserConfig(userConfig: any) {
     if (typeof userConfig === "string") {
-        userConfig = userConfig.replaceAll(" ", "");
         return JSON.parse(userConfig);
     } else if (typeof userConfig === 'object') {
         return userConfig;
@@ -211,13 +210,15 @@ export function parseUserConfig(userConfig: any) {
 
 export function parseUserDataset(userDataset: any, type = 'object') {
     if (typeof userDataset === "string") {
-        userDataset = userDataset.replaceAll(" ", "");
         return JSON.parse(userDataset).map((s: any, i: number) => {
             return {
                 ...s,
                 datasetId: createUid(),
                 color: s.color || palette[i] || palette[i % i],
-                datapoints: []
+                datapoints: [],
+                lines: [],
+                areas: [],
+                dataLabels: [],
             }
         });
     } else if (typeof userDataset === 'object') {
@@ -226,7 +227,10 @@ export function parseUserDataset(userDataset: any, type = 'object') {
                 ...s,
                 datasetId: createUid(),
                 color: s.color || palette[i] || palette[i % i],
-                datapoints: []
+                datapoints: [],
+                lines: [],
+                areas: [],
+                dataLabels: [],
             }
         });
     } else {

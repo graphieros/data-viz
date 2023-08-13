@@ -66,6 +66,12 @@ function xy(parent: HTMLDivElement) {
         defaultConfig: configLine
     });
 
+    const svg = createSvg({
+        parent,
+        dimensions: { x: config.width, y: config.height },
+        config
+    })
+
     const drawingArea = getDrawingArea(config);
     const maxSeries = Math.max(...dataset.map((d: any) => d.values.length));
     const slot = drawingArea.width / maxSeries;
@@ -81,11 +87,6 @@ function xy(parent: HTMLDivElement) {
         return max + relativeZero
     }(max, relativeZero));
 
-    const svg = createSvg({
-        parent,
-        dimensions: { x: config.width, y: config.height },
-        config
-    })
 
     Object.assign(XY_STATE, {
         [xyId]: {
@@ -93,14 +94,17 @@ function xy(parent: HTMLDivElement) {
             type: "xy",
             config,
             dataset,
+            mutableDataset: dataset,
             drawingArea,
             maxSeries,
             slot,
             max,
             min,
             absoluteMax,
+            relativeZero,
             svg,
             selectedIndex: undefined,
+            segregatedDatasets: []
         }
     });
 
@@ -108,10 +112,49 @@ function xy(parent: HTMLDivElement) {
         return (val + relativeZero) / absoluteMax;
     }
 
-    makeXyGrid({ id: xyId, state: XY_STATE });
+    // makeXyGrid({ id: xyId, state: XY_STATE });
 
-    XY_STATE[xyId].dataset
-        .filter((d: any) => d.type === Chart.LINE)
+    drawChart({
+        state: XY_STATE,
+        id: xyId
+    });
+
+    createTitle({ id: xyId, state: XY_STATE });
+    createLegend({ id: xyId, state: XY_STATE });
+}
+
+export function drawChart({ state, id }: { state: any, id: string }) {
+
+    let { parent, svg, dataset, max, min, maxSeries, drawingArea, slot, config, relativeZero, absoluteMax } = state[id];
+
+    svg.innerHTML = "";
+
+    const mutedDataset = dataset.filter((d: any) => d.type === Chart.LINE)
+        .filter((d: any) => !state[id].segregatedDatasets.includes(d.datasetId));
+
+
+    maxSeries = Math.max(...mutedDataset.map((d: any) => d.values.length));
+    slot = drawingArea.width / maxSeries;
+    max = Math.max(...mutedDataset.map((d: any) => Math.max(...d.values)));
+    min = Math.min(...mutedDataset.map((d: any) => Math.min(...d.values)));
+
+    relativeZero = (function IIFE(min) {
+        if (min >= 0) return 0;
+        return Math.abs(min);
+    }(min));
+
+    absoluteMax = (function IIFE(max, relativeZero) {
+        return max + relativeZero
+    }(max, relativeZero));
+
+
+    function ratioToMax(val: number) {
+        return (val + relativeZero) / absoluteMax;
+    }
+
+    makeXyGrid({ id, state });
+
+    mutedDataset
         .map((d: any) => {
             return {
                 ...d,
@@ -125,8 +168,8 @@ function xy(parent: HTMLDivElement) {
             }
         })
         .forEach((line: any, index: number) => drawLine({
-            svg: XY_STATE[xyId].svg,
-            id: xyId,
+            svg,
+            id,
             datasetId: line.datasetId,
             line,
             config,
@@ -135,16 +178,17 @@ function xy(parent: HTMLDivElement) {
             drawingArea
         }));
 
-    createTraps({ id: xyId, state: XY_STATE });
-    createTooltip({ id: xyId, state: XY_STATE });
-    createTitle({ id: xyId, state: XY_STATE });
-    createLegend({ id: xyId, state: XY_STATE });
+    createTooltip({ id, state: XY_STATE });
+    createTraps({ id, state: XY_STATE });
+    //createTable({ id: xyId, state: XY_STATE});
 
     clearDataAttributes(parent);
+    console.log(state);
 }
 
 const charts = {
-    createCharts
+    createCharts,
+    drawChart
 }
 
 export default charts;
