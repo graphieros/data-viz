@@ -70,10 +70,16 @@ export const configLine = {
     },
     line: {
         strokeWidth: 2,
-        progression: {
+        linearProgression: {
             // TODO
             show: true,
             strokeWidth: 1,
+            label: {
+                show: true,
+                fontSize: 10,
+                rounding: 1,
+                offsetY: 0
+            }
         },
         plots: {
             show: true,
@@ -96,10 +102,6 @@ export const configLine = {
         indicator: {
             color: "#2D353C",
             opacity: 5,
-        },
-        zeroLine: {
-            stroke: "#CCCCCC",
-            strokeWidth: 1
         }
     },
     title: {

@@ -231,6 +231,7 @@ export function parseUserDataset(userDataset: any, type = 'object') {
                 lines: [],
                 areas: [],
                 dataLabels: [],
+                linearProgressions: []
             }
         });
     } else {
@@ -284,6 +285,7 @@ export function createSvg({ parent, dimensions, config }: { parent: HTMLDivEleme
     svg.style.color = config.color;
     svg.style.fontFamily = config.fontFamily;
     svg.style.overflow = "visible";
+    svg.style.userSelect = "none";
     parent.appendChild(svg);
     return svg;
 }
@@ -385,6 +387,25 @@ export function shiftHue(hexColor: string, shiftAmount: number) {
     return shiftedHexColor;
 }
 
+export function createArrow({ color, defs, id }: { color: string, defs: SVGDefsElement, id: string }) {
+    const marker = spawnNS("marker");
+    addTo(marker, "id", `arrow_${id}`);
+    addTo(marker, "markerWidth", 7);
+    addTo(marker, "markerHeight", 7);
+    addTo(marker, "refX", 0);
+    addTo(marker, "refY", 3.5);
+    addTo(marker, "orient", "auto");
+
+    const polygon = spawnNS("polygon");
+    addTo(polygon, "points", "0 0, 7 3.5, 0 7");
+    addTo(polygon, SvgAttribute.FILL, color);
+
+    marker.appendChild(polygon);
+    defs.appendChild(marker);
+
+    return `arrow_${id}`;
+}
+
 export function createLinearGradient({ defs, direction, start, end }: { defs: SVGDefsElement, direction: "x" | "y", start: string, end: string }) {
     const lg = spawnNS("linearGradient");
 
@@ -428,17 +449,51 @@ export function closestDecimal(val: number) {
     return roundedValue;
 }
 
+export function calcLinearProgression(plots: { x: number, y: number, value: number }[]) {
+    let x1, y1, x2, y2;
+    const len = plots.length;
+    let sumX = 0;
+    let sumY = 0;
+    let sumXY = 0;
+    let sumXX = 0;
+    for (const { x, y } of plots) {
+        sumX += x;
+        sumY += y;
+        sumXY += x * y;
+        sumXX += x * x;
+    }
+    const slope = (len * sumXY - sumX * sumY) / (len * sumXX - sumX * sumX);
+    const intercept = (sumY - slope * sumX) / len;
+    x1 = plots[0].x;
+    x2 = plots[len - 1].x;
+    y1 = slope * x1 + intercept;
+    y2 = slope * x2 + intercept;
+    return { x1, y1, x2, y2, slope };
+}
+
 const utils = {
     addTo,
     applyEllipsis,
+    calcLinearProgression,
+    clearDataAttributes,
+    closestDecimal,
+    createArrow,
+    createConfig,
+    createLinearGradient,
+    createSvg,
     createUid,
     findClassNameSuffix,
     findClosestAncestorByClassName,
     getCssColor,
+    getDrawingArea,
     grabId,
+    isValidUserValue,
     logError,
+    parseUserConfig,
+    parseUserDataset,
     reorderArrayByIndex,
     setSvgAttribute,
+    shiftHue,
     spawn,
     spawnNS,
     swapArrayPositions,
@@ -446,16 +501,6 @@ const utils = {
     translateY,
     updateCssClasses,
     walkTheDOM,
-    createSvg,
-    createConfig,
-    parseUserConfig,
-    parseUserDataset,
-    clearDataAttributes,
-    getDrawingArea,
-    isValidUserValue,
-    createLinearGradient,
-    shiftHue,
-    closestDecimal
 };
 
 export default utils;

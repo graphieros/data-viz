@@ -6,6 +6,7 @@ import {
     clearDataAttributes,
     getDrawingArea,
     createUid,
+    calcLinearProgression,
 } from "./functions";
 
 import {
@@ -155,6 +156,12 @@ export function drawChart({ state, id }: { state: any, id: string }) {
                         value: v,
                     }
                 })
+            }
+        })
+        .map((d: any) => {
+            return {
+                ...d,
+                linearProgression: calcLinearProgression(d.plots)
             }
         })
         .forEach((line: any, index: number) => drawLine({

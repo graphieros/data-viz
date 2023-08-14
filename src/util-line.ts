@@ -1,9 +1,9 @@
 import { DomElement, SvgAttribute, SvgElement } from "./constants";
-import { spawn, spawnNS, addTo, isValidUserValue, createLinearGradient, shiftHue, closestDecimal } from "./functions";
+import { spawn, spawnNS, addTo, isValidUserValue, createLinearGradient, shiftHue, closestDecimal, createArrow } from "./functions";
 import { opacity } from "./config";
 import XY_STATE from "./state_xy";
 
-export function createYLabels({ id, svg, config, drawingArea, relativeZero, absoluteMax, max, min, zero }: { id: string, svg: any, config: any, drawingArea: any, relativeZero: number, absoluteMax: number, max: number, min: number, zero: any }) {
+export function createYLabels({ svg, config, drawingArea, absoluteMax, max, min, zero }: { svg: any, config: any, drawingArea: any, absoluteMax: number, max: number, min: number, zero: any }) {
 
     const positiveStep = closestDecimal(max / 5);
     const positiveSteps = [];
@@ -40,15 +40,12 @@ export function createYLabels({ id, svg, config, drawingArea, relativeZero, abso
         addTo(yTick, SvgAttribute.X2, drawingArea.left - 6);
         addTo(yTick, SvgAttribute.Y1, step.y);
         addTo(yTick, SvgAttribute.Y2, step.y);
-        if (step.value > max || step.value < min) return;
+        if ((step.value > max || step.value < min) && step.value !== 0) return;
         [yLabel, yTick].forEach((el: any) => svg.appendChild(el));
     });
 }
 
-function createXLabels({ id, state, config, drawingArea, svg, maxSeries, slot }: { id: any, state: any, config: any, drawingArea: any, svg: any, maxSeries: number, slot: number }) {
-
-    console.log({ slot })
-
+function createXLabels({ config, drawingArea, svg, maxSeries, slot }: { config: any, drawingArea: any, svg: any, maxSeries: number, slot: number }) {
     for (let i = 0; i < maxSeries; i += 1) {
         const xLabel = spawnNS(SvgElement.TEXT);
         addTo(xLabel, SvgAttribute.X, drawingArea.left + (slot * i) + (slot / 2));
@@ -69,13 +66,13 @@ export function makeXyGrid({ id, state, relativeZero, absoluteMax, max, min, max
     const config = state[id].config;
     const svg = state[id].svg;
 
-    const x = spawnNS(SvgElement.LINE);
-    addTo(x, SvgAttribute.X1, drawingArea.left);
-    addTo(x, SvgAttribute.X2, drawingArea.right);
-    addTo(x, SvgAttribute.Y1, drawingArea.bottom);
-    addTo(x, SvgAttribute.Y2, drawingArea.bottom);
-    addTo(x, SvgAttribute.STROKE, config.grid.stroke);
-    addTo(x, SvgAttribute.STROKE_WIDTH, config.grid.strokeWidth);
+    const zero = {
+        x1: drawingArea.left,
+        x2: drawingArea.right,
+        y1: drawingArea.bottom - (drawingArea.height * (relativeZero / absoluteMax)),
+        y2: drawingArea.bottom - (drawingArea.height * (relativeZero / absoluteMax)),
+    };
+
 
     const y = spawnNS(SvgElement.LINE);
     addTo(y, SvgAttribute.X1, drawingArea.left);
@@ -85,50 +82,36 @@ export function makeXyGrid({ id, state, relativeZero, absoluteMax, max, min, max
     addTo(y, SvgAttribute.STROKE, config.grid.stroke);
     addTo(y, SvgAttribute.STROKE_WIDTH, config.grid.strokeWidth);
 
-    [x, y].forEach(line => svg.appendChild(line));
 
-    const zero = {
-        x1: drawingArea.left,
-        x2: drawingArea.right,
-        y1: drawingArea.bottom - (drawingArea.height * (relativeZero / absoluteMax)),
-        y2: drawingArea.bottom - (drawingArea.height * (relativeZero / absoluteMax)),
-    };
+    const zeroLine = spawnNS(SvgElement.LINE);
+    addTo(zeroLine, SvgAttribute.X1, zero.x1);
+    addTo(zeroLine, SvgAttribute.X2, zero.x2);
+    addTo(zeroLine, SvgAttribute.Y1, zero.y1);
+    addTo(zeroLine, SvgAttribute.Y2, zero.y2);
+    addTo(zeroLine, SvgAttribute.STROKE, config.grid.stroke);
+    addTo(zeroLine, SvgAttribute.STROKE_WIDTH, config.grid.strokeWidth);
 
-    if (state[id].relativeZero > 0) {
-        const zeroLine = spawnNS(SvgElement.LINE);
-        addTo(zeroLine, SvgAttribute.X1, zero.x1);
-        addTo(zeroLine, SvgAttribute.X2, zero.x2);
-        addTo(zeroLine, SvgAttribute.Y1, zero.y1);
-        addTo(zeroLine, SvgAttribute.Y2, zero.y2);
-        addTo(zeroLine, SvgAttribute.STROKE, config.line.zeroLine.stroke);
-        addTo(zeroLine, SvgAttribute.STROKE_WIDTH, config.line.zeroLine.strokeWidth);
-        addTo(zeroLine, "stroke-dasharray", config.line.zeroLine.strokeWidth * 2);
-        svg.appendChild(zeroLine);
-    }
+    [zeroLine, y].forEach(line => svg.appendChild(line));
 
     if (config.grid.yLabels.show && state[id].segregatedDatasets.length < state[id].dataset.length) {
         createYLabels({
-            id,
-            svg,
+            absoluteMax,
             config,
             drawingArea,
-            relativeZero,
-            absoluteMax,
             max,
             min,
+            svg,
             zero
         });
     }
 
     if (config.grid.xLabels.show && config.grid.xLabels.values.length) {
         createXLabels({
-            id,
-            state,
             config,
             drawingArea,
-            svg,
             maxSeries,
-            slot
+            slot,
+            svg,
         });
     }
 }
@@ -181,11 +164,12 @@ export function createTraps({ id, state, maxSeries }: { id: string, state: any, 
 export function drawLine({ datasetId, id, svg, line, config, palette, index, drawingArea }: { datasetId: string, id: string, svg: SVGElement, line: any, config: any, palette: string[], index: number, drawingArea: any }) {
     const color = line.color || palette[index] || palette[index % palette.length];
     let gradientId = "";
+    let arrowId = "";
 
     const thisDataset = XY_STATE[id].dataset.find((d: any) => d.datasetId === datasetId);
+    const defs = spawnNS("defs") as SVGDefsElement;
 
     if (config.line.area.useGradient) {
-        const defs = spawnNS("defs") as SVGDefsElement;
         const direction = "x";
         const start = `${shiftHue(color, 0.05)}${opacity[config.line.area.opacity]}`;
         const end = `${color}${opacity[config.line.area.opacity]}`;
@@ -194,15 +178,27 @@ export function drawLine({ datasetId, id, svg, line, config, palette, index, dra
             direction,
             start,
             end
-        })
-        svg.appendChild(defs);
+        });
     }
+
+    if (config.line.linearProgression.show) {
+        // arrow marker
+        arrowId = createArrow({
+            color,
+            defs,
+            id: datasetId
+        });
+
+    }
+
+    svg.appendChild(defs);
 
     // CLEAR STATE
     thisDataset.lines = [];
     thisDataset.areas = [];
     thisDataset.datapoints = [];
     thisDataset.dataLabels = [];
+    thisDataset.linearProgressions = [];
 
     if (config.line.area.show) {
         const start = { x: line.plots[0].x, y: drawingArea.bottom };
@@ -218,6 +214,27 @@ export function drawLine({ datasetId, id, svg, line, config, palette, index, dra
         addTo(area, SvgAttribute.STROKE, "none");
         thisDataset.areas.push(area);
         svg.appendChild(area);
+    }
+
+    if (config.line.linearProgression.show) {
+        const progressLine = spawnNS(SvgElement.LINE);
+        addTo(progressLine, SvgAttribute.X1, line.linearProgression.x1);
+        addTo(progressLine, SvgAttribute.X2, line.linearProgression.x2);
+        addTo(progressLine, SvgAttribute.Y1, line.linearProgression.y1);
+        addTo(progressLine, SvgAttribute.Y2, line.linearProgression.y2);
+        addTo(progressLine, SvgAttribute.STROKE, line.color);
+        addTo(progressLine, SvgAttribute.STROKE_WIDTH, config.line.linearProgression.strokeWidth);
+        addTo(progressLine, "stroke-dasharray", config.line.linearProgression.strokeWidth * 2)
+        addTo(progressLine, "marker-end", `url(#${arrowId})`)
+
+        const progressLabel = spawnNS(SvgElement.TEXT);
+        addTo(progressLabel, SvgAttribute.FILL, color);
+        addTo(progressLabel, "font-size", config.line.linearProgression.label.fontSize);
+        addTo(progressLabel, SvgAttribute.X, line.linearProgression.x2);
+        addTo(progressLabel, SvgAttribute.Y, line.linearProgression.y2 - 6 + config.line.linearProgression.label.offsetY);
+        addTo(progressLabel, SvgAttribute.TEXT_ANCHOR, "middle");
+        progressLabel.innerHTML = line.linearProgression.slope < 0 ? `+${Number(Math.abs((line.linearProgression.slope * 100)).toFixed(config.line.linearProgression.label.rounding)).toLocaleString()}%` : `-${Number(Math.abs((line.linearProgression.slope * 100)).toFixed(config.line.linearProgression.label.rounding)).toLocaleString()}%`;
+        [progressLine, progressLabel].forEach((el: any) => svg.appendChild(el))
     }
 
     line.plots.forEach((plot: any, i: number) => {
@@ -262,8 +279,6 @@ export function drawLine({ datasetId, id, svg, line, config, palette, index, dra
             svg.appendChild(t);
         }
     });
-
-    // TODO: createProgressionLine
 
     return svg;
 }
