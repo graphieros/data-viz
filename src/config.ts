@@ -50,6 +50,11 @@ export const configLine = {
         show: true,
         stroke: "#e1e5e8",
         strokeWidth: 1,
+        verticalSeparators: {
+            show: true,
+            stroke: "#e1e5e8",
+            strokeWidth: 0.5
+        },
         yLabels: {
             show: true,
             fontSize: 12,
@@ -68,19 +73,36 @@ export const configLine = {
             color: "#2D353C"
         }
     },
-    line: {
-        strokeWidth: 2,
-        linearProgression: {
-            // TODO
+    linearProgression: {
+        // show is determined on the dataset's serie
+        strokeWidth: 1,
+        label: {
             show: true,
-            strokeWidth: 1,
-            label: {
-                show: true,
-                fontSize: 10,
-                rounding: 1,
+            fontSize: 10,
+            rounding: 1,
+            offsetY: 0,
+            offsetX: 0
+        }
+    },
+    bars: {
+        strokeWidth: 0,
+        useGradient: true,
+        borderRadius: 1,
+        dataLabels: {
+            show: true,
+            color: "#2D353C",
+            fontSize: 10,
+            roundingValue: 0,
+            positive: {
+                offsetY: 0
+            },
+            negative: {
                 offsetY: 0
             }
-        },
+        }
+    },
+    line: {
+        strokeWidth: 2,
         plots: {
             show: true,
             radius: 3,
@@ -90,12 +112,12 @@ export const configLine = {
         dataLabels: {
             show: true,
             color: "#2D353C",
-            fontSize: 14,
+            fontSize: 10,
             offsetY: 0,
             roundingValue: 0,
         },
         area: {
-            show: true,
+            // show is determined on the dataset's serie
             opacity: 20,
             useGradient: true,
         },

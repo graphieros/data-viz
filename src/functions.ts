@@ -406,6 +406,54 @@ export function createArrow({ color, defs, id }: { color: string, defs: SVGDefsE
     return `arrow_${id}`;
 }
 
+export function createBarGradientPositive({ defs, color }: { defs: SVGDefsElement, color: string }) {
+    const bg = spawnNS("linearGradient");
+    const id = createUid();
+    addTo(bg, SvgAttribute.X2, "0%");
+    addTo(bg, SvgAttribute.Y2, "100%");
+    addTo(bg, "id", id);
+
+    const stop1 = spawnNS("stop") as SVGStopElement;
+    addTo(stop1, "offset", "0%");
+    addTo(stop1, "stop-color", color);
+
+    const stop2 = spawnNS("stop") as SVGStopElement;
+    addTo(stop2, "offset", "62%");
+    addTo(stop2, "stop-color", `${shiftHue(color, 0.02)}`);
+
+    const stop3 = spawnNS("stop") as SVGStopElement;
+    addTo(stop3, "offset", "100%");
+    addTo(stop3, "stop-color", `${shiftHue(color, 0.05)}`);
+
+    [stop1, stop2, stop3].forEach((stop: SVGStopElement) => bg.appendChild(stop));
+    defs.appendChild(bg);
+    return `url(#${id})`;
+}
+
+export function createBarGradientNegative({ defs, color }: { defs: SVGDefsElement, color: string }) {
+    const bg = spawnNS("linearGradient");
+    const id = createUid();
+    addTo(bg, SvgAttribute.X2, "0%");
+    addTo(bg, SvgAttribute.Y2, "100%");
+    addTo(bg, "id", id);
+
+    const stop1 = spawnNS("stop") as SVGStopElement;
+    addTo(stop1, "offset", "0%");
+    addTo(stop1, "stop-color", `${shiftHue(color, 0.05)}`);
+
+    const stop2 = spawnNS("stop") as SVGStopElement;
+    addTo(stop2, "offset", "38%");
+    addTo(stop2, "stop-color", `${shiftHue(color, 0.02)}`);
+
+    const stop3 = spawnNS("stop") as SVGStopElement;
+    addTo(stop3, "offset", "100%");
+    addTo(stop3, "stop-color", color);
+
+    [stop1, stop2, stop3].forEach((stop: SVGStopElement) => bg.appendChild(stop));
+    defs.appendChild(bg);
+    return `url(#${id})`;
+}
+
 export function createLinearGradient({ defs, direction, start, end }: { defs: SVGDefsElement, direction: "x" | "y", start: string, end: string }) {
     const lg = spawnNS("linearGradient");
 
@@ -478,6 +526,8 @@ const utils = {
     clearDataAttributes,
     closestDecimal,
     createArrow,
+    createBarGradientPositive,
+    createBarGradientNegative,
     createConfig,
     createLinearGradient,
     createSvg,

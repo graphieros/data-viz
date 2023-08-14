@@ -62,7 +62,7 @@ export function createLegend({ id, state }: { id: string, state: any }) {
         legendItem.style.alignItems = "center";
         legendItem.style.justifyContent = "center";
         legendItem.style.gap = "3px";
-        legendItem.innerHTML = `<span style="color:${ds.color}">⬤</span><span>${ds.name}</span>`
+        legendItem.innerHTML = `<span style="color:${ds.color}">${ds.type === 'line' ? '▬' : ds.type === 'bar' ? '◼' : '⬤'}</span><span>${ds.name}</span>`
         legendWrapper.appendChild(legendItem);
         legendItem.addEventListener("click", () => segregate({ datasetId: ds.datasetId, id, state, legendItem }))
         if (state[id].segregatedDatasets.includes(ds.datasetId)) {

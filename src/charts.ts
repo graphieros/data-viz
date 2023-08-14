@@ -11,15 +11,15 @@ import {
 
 import {
     makeXyGrid,
-    drawLine,
+    drawSerie,
     createTraps
-} from "./util-line"
+} from "./util_xy"
 
 import {
     palette,
     configLine
 } from "./config"
-import { Chart } from "./constants";
+
 import XY_STATE from "./state_xy";
 import { createTooltip } from "./tooltip";
 import { createTitle } from "./title";
@@ -45,11 +45,11 @@ export function createCharts(attr = "") {
     if (targets.length) {
 
         if (!attr || attr === "data-vision-xy") {
-            const lines = Array.from(targets).filter((node: any) => {
+            const type_xy = Array.from(targets).filter((node: any) => {
                 return node.hasAttribute("data-vision-xy")
             });
             nuke("data-vision-xy");
-            lines.forEach(line => xy(line as unknown as HTMLDivElement));
+            type_xy.forEach(line => xy(line as unknown as HTMLDivElement));
         }
     }
 }
@@ -75,6 +75,7 @@ function xy(parent: HTMLDivElement) {
     const drawingArea = getDrawingArea(config);
     const maxSeries = Math.max(...dataset.map((d: any) => d.values.length));
     const slot = drawingArea.width / maxSeries;
+    const barSlot = drawingArea.width / maxSeries / dataset.filter((s: any) => s.type === "bar").length;
     const max = Math.max(...dataset.map((d: any) => Math.max(...d.values)));
     const min = Math.min(...dataset.map((d: any) => Math.min(...d.values)));
 
@@ -98,6 +99,7 @@ function xy(parent: HTMLDivElement) {
             drawingArea,
             maxSeries,
             slot,
+            barSlot,
             max,
             min,
             absoluteMax,
@@ -116,16 +118,16 @@ function xy(parent: HTMLDivElement) {
 
 export function drawChart({ state, id }: { state: any, id: string }) {
 
-    let { parent, svg, dataset, max, min, maxSeries, drawingArea, slot, config, relativeZero, absoluteMax } = state[id];
+    let { parent, svg, dataset, max, min, maxSeries, drawingArea, slot, barSlot, config, relativeZero, absoluteMax } = state[id];
 
     svg.innerHTML = "";
 
-    const mutedDataset = dataset.filter((d: any) => d.type === Chart.LINE)
+    const mutedDataset = dataset
         .filter((d: any) => !state[id].segregatedDatasets.includes(d.datasetId));
-
 
     maxSeries = Math.max(...mutedDataset.map((d: any) => d.values.length));
     slot = drawingArea.width / maxSeries;
+    barSlot = drawingArea.width / maxSeries / mutedDataset.filter((el: any) => el.type === "bar").length;
     max = Math.max(...mutedDataset.map((d: any) => Math.max(...d.values)));
     min = Math.min(...mutedDataset.map((d: any) => Math.min(...d.values)));
 
@@ -146,6 +148,47 @@ export function drawChart({ state, id }: { state: any, id: string }) {
     makeXyGrid({ id, state, relativeZero, absoluteMax, max, min, maxSeries, slot });
 
     mutedDataset
+        .filter((d: any) => d.type === "bar")
+        .map((d: any, k: number) => {
+            return {
+                ...d,
+                plots: d.values.map((v: number, i: number) => {
+                    return {
+                        x: (drawingArea.left + (slot / 2)) + (slot * i),
+                        y: drawingArea.bottom - (drawingArea.height * ratioToMax(v)),
+                        value: v,
+                    }
+                }),
+                bars: d.values.map((v: number, i: number) => {
+                    return {
+                        x: (drawingArea.left + barSlot * k) + (barSlot * i * mutedDataset.filter((md: any) => md.type === 'bar').length) + ((barSlot / 2) * 0.1),
+                        y: drawingArea.bottom - (drawingArea.height * ratioToMax(v)),
+                        value: v
+                    }
+                })
+            }
+        })
+        .map((d: any) => {
+            return {
+                ...d,
+                linearProgression: calcLinearProgression(d.plots)
+            }
+        })
+        .forEach((serie: any, index: number) => drawSerie({
+            svg,
+            id,
+            datasetId: serie.datasetId,
+            serie,
+            config,
+            palette,
+            index,
+            drawingArea,
+            zero: drawingArea.bottom - (drawingArea.height * ratioToMax(0)),
+            barSlot
+        }));
+
+    mutedDataset
+        .filter((d: any) => d.type === "line")
         .map((d: any) => {
             return {
                 ...d,
@@ -164,15 +207,17 @@ export function drawChart({ state, id }: { state: any, id: string }) {
                 linearProgression: calcLinearProgression(d.plots)
             }
         })
-        .forEach((line: any, index: number) => drawLine({
+        .forEach((serie: any, index: number) => drawSerie({
             svg,
             id,
-            datasetId: line.datasetId,
-            line,
+            datasetId: serie.datasetId,
+            serie,
             config,
             palette,
             index,
-            drawingArea
+            drawingArea,
+            zero: drawingArea.bottom - (drawingArea.height * ratioToMax(0)),
+            barSlot
         }));
 
     createTooltip({ id, state: XY_STATE });
