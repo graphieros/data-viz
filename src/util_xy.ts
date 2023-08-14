@@ -312,7 +312,7 @@ export function drawSerie({ datasetId, id, svg, serie, config, palette, index, d
         });
     }
 
-    if (serie.type === "line") {
+    if (["line", "plot"].includes(serie.type)) {
         serie.plots.forEach((plot: any, i: number) => {
             // plots
             if (config.line.plots.show && isValidUserValue(plot.value)) {

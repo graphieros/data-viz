@@ -40,6 +40,12 @@ export const configLine = {
     fontFamily: "inherit",
     height: 316,
     width: 500,
+    toolkit: {
+        show: true,
+        csvExport: {
+            show: true,
+        },
+    },
     padding: {
         top: 48,
         right: 24,
@@ -134,6 +140,8 @@ export const configLine = {
         bold: true,
         color: "#2D353C",
         backgroundColor: "#FFFFFF",
+        textAlign: "center",
+        marginTop: 0,
         offsetY: 0,
         subtitle: {
             text: "",
@@ -180,6 +188,27 @@ export const configLine = {
             translation: "Total",
             show: true,
             rounding: 0
+        }
+    },
+    table: {
+        show: false,
+        th: {
+            backgroundColor: "#FAFAFA",
+            color: "#2D353C",
+            fontSize: 14,
+            roundingValue: 0,
+            roundingPercentage: 0,
+            prefix: "",
+            suffix: ""
+        },
+        td: {
+            backgroundColor: "#FFFFFF",
+            color: "#2D353C",
+            fontSize: 14,
+            roundingValue: 1,
+            roundedPercentage: 0,
+            prefix: "",
+            suffix: ""
         }
     }
 

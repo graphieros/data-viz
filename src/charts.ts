@@ -24,6 +24,7 @@ import XY_STATE from "./state_xy";
 import { createTooltip } from "./tooltip";
 import { createTitle } from "./title";
 import { createLegend } from "./legend";
+import { createToolkit } from "./toolkit";
 
 function nuke(attr = "") {
     const all = document.getElementsByClassName("data-vision") as any;
@@ -106,8 +107,9 @@ function xy(parent: HTMLDivElement) {
             relativeZero,
             svg,
             selectedIndex: undefined,
-            segregatedDatasets: []
-        }
+            segregatedDatasets: [],
+        },
+        openTables: []
     });
 
     drawChart({
@@ -188,7 +190,7 @@ export function drawChart({ state, id }: { state: any, id: string }) {
         }));
 
     mutedDataset
-        .filter((d: any) => d.type === "line")
+        .filter((d: any) => ["line", "plot"].includes(d.type))
         .map((d: any) => {
             return {
                 ...d,
@@ -224,7 +226,12 @@ export function drawChart({ state, id }: { state: any, id: string }) {
     createTraps({ id, state: XY_STATE, maxSeries });
     createTitle({ id, state: XY_STATE });
     createLegend({ id, state: XY_STATE });
-    //createTable({ id: xyId, state: XY_STATE});
+    createToolkit({
+        id,
+        config,
+        dataset: mutedDataset,
+        parent
+    });
 
     clearDataAttributes(parent);
     console.log(state);

@@ -78,7 +78,7 @@ export function createTooltip({ id, state }: { id: string, state: any }) {
                 html += "</div>";
                 series.forEach((s: any) => {
                     const percentage = s.values[state[id].selectedIndex] / total * 100;
-                    html += `<div><span style="color:${s.color};margin-right:3px;">${s.type === 'line' ? '▬' : s.type === 'bar' ? '◼' : '⬤'}</span>${s.name} : <b>${isNaN(s.values[state[id].selectedIndex]) ? '-' : s.values[state[id].selectedIndex]}</b>`;
+                    html += `<div><span style="color:${s.color};margin-right:3px;">${s.type === 'line' ? '▬' : s.type === 'bar' ? '◼' : '⬤'}</span>${s.name} : <b>${isNaN(s.values[state[id].selectedIndex]) ? '-' : Number(s.values[state[id].selectedIndex].toFixed(config.tooltip.value.rounding)).toLocaleString()}</b>`;
                     if (config.tooltip.percentage.show) {
                         html += `<span style="margin-left:3px;">(${isNaN(percentage) ? '-' : Number((percentage).toFixed(config.tooltip.percentage.rounding)).toLocaleString()}%)</span>`
                     }

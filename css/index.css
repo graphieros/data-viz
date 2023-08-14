@@ -9,3 +9,22 @@
 .data-vision svg * {
     transition: all 0.1s ease-in-out;
 }
+
+.data-vision-button {
+    all: unset;
+    align-items:center;
+    background: #FAFAFA;
+    border-radius: 4px;
+    color: #2D353C;
+    cursor: pointer;
+    display: flex;
+    height: 32px;
+    justify-content:center;
+    outline: 1px solid #e1e5e8;
+    padding: 0px;
+}
+
+.data-vision-button:focus,
+.data-vision-button:hover {
+    outline: 3px solid #2D353C33;
+}

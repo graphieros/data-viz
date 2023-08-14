@@ -20,7 +20,15 @@ export function createTitle({ id, state }: { id: string, state: any }) {
         titleContainer.style.display = "flex";
         titleContainer.style.flexDirection = "column";
         titleContainer.style.gap = "6px";
-        titleContainer.style.alignItems = "center";
+        titleContainer.style.marginTop = `${config.title.marginTop}px`
+
+        if (config.title.textAlign === "left") {
+            titleContainer.style.alignItems = "flex-start";
+        } else if (config.title.textAlign === "right") {
+            titleContainer.style.alignItems = "flex-end";
+        } else {
+            titleContainer.style.alignItems = "center";
+        }
         titleContainer.style.justifyContent = "center";
         titleContainer.style.background = config.title.backgroundColor;
         titleContainer.style.fontFamily = config.fontFamily;
@@ -48,6 +56,7 @@ export function createTitle({ id, state }: { id: string, state: any }) {
         const drawingArea = state[id].drawingArea;
 
         const title = spawnNS("text");
+        // TODO TEXT ALIGN FROM CONFIG
         addTo(title, SvgAttribute.X, drawingArea.fullWidth / 2);
         addTo(title, SvgAttribute.Y, `${18 + config.title.offsetY}`);
         addTo(title, SvgAttribute.TEXT_ANCHOR, "middle");
