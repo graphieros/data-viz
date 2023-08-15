@@ -10,18 +10,20 @@ if (typeof window !== undefined) {
         // Private
         createCharts();
 
-        function initLineCharts() {
-            createCharts("data-viz-line")
+        function initXy() {
+            createCharts("data-vision-xy")
         }
 
         // Public
         return {
-            initLineCharts
+            initXy,
+            createCharts
         }
     }(
         createCharts,
     ));
 
-    (window as unknown as W).DataVision = DataVision
+    (window as unknown as W).DataVision = DataVision;
+    // DataVision.createCharts();
 }
 

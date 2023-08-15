@@ -58,13 +58,21 @@ export function createToolkit({ id, config, dataset, parent }: { id: string, con
     exportButton.classList.add("data-vision-button");
     const exportIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="80%" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" /><path d="M8 11h8v7h-8z" /><path d="M8 15h8" /><path d="M11 11v7" /></svg>`
     exportButton.innerHTML = exportIcon;
-    exportButton.style.width = "32px";
+    exportButton.style.width = `${config.toolkit.buttons.size}px`;
+    exportButton.style.height = `${config.toolkit.buttons.size}px`;
+    exportButton.style.background = config.toolkit.buttons.backgroundColor;
+    exportButton.style.color = config.toolkit.buttons.color;
+    exportButton.style.outline = config.toolkit.buttons.outline;
     exportButton.addEventListener("click", () => {
         downloadCsv({
             csvContent
         });
     });
-    toolkitWrapper.appendChild(exportButton);
+
+    if (config.toolkit.csvExport.show) {
+        toolkitWrapper.appendChild(exportButton);
+    }
+
 
     // DATA TABLE
     const tableButton = spawn("BUTTON");
@@ -72,7 +80,11 @@ export function createToolkit({ id, config, dataset, parent }: { id: string, con
     const tableIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="80%" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14z" /><path d="M3 10h18" /><path d="M10 3v18" /></svg>`;
     const tableIconOpen = `<svg xmlns="http://www.w3.org/2000/svg"  width="80%" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12.5 21h-7.5a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10" /><path d="M3 10h18" /><path d="M10 3v18" /><path d="M16 19h6" /></svg>`;
     tableButton.innerHTML = tableIcon;
-    tableButton.style.width = "32px";
+    tableButton.style.width = `${config.toolkit.buttons.size}px`;
+    tableButton.style.height = `${config.toolkit.buttons.size}px`;
+    tableButton.style.background = config.toolkit.buttons.backgroundColor;
+    tableButton.style.color = config.toolkit.buttons.color;
+    tableButton.style.outline = config.toolkit.buttons.outline;
     tableButton.addEventListener("click", toggleTable);
     toolkitWrapper.prepend(tableButton);
 
@@ -104,11 +116,14 @@ export function createToolkit({ id, config, dataset, parent }: { id: string, con
         t.forEach((h: any) => {
             const th = spawn("TH");
             th.innerHTML = isNaN(h) || h === '' ? h : Number(Number(h).toFixed(config.table.th.roundingValue)).toLocaleString();
+            if (!isNaN(h) || h === "Σ") {
+                th.style.textAlign = "right";
+                th.style.paddingRight = "6px";
+            }
             th.style.background = config.table.th.backgroundColor;
             th.style.color = config.table.th.color;
             th.style.fontSize = `${config.table.th.fontSize}px`;
             th.style.outline = "1px solid #e1e5e8";
-            th.style.padding = "2px 0";
             tr.appendChild(th);
         });
         thead.appendChild(tr);
@@ -126,6 +141,7 @@ export function createToolkit({ id, config, dataset, parent }: { id: string, con
             td.style.textAlign = "right";
             td.style.paddingRight = "6px";
             td.style.fontVariantNumeric = "tabluar-nums";
+            td.style.fontSize = `${config.table.td.fontSize}px`;
             td.style.background = config.table.td.backgroundColor;
             td.style.color = config.table.td.color;
             td.innerHTML = isNaN(r) || r === '' ? r : Number(Number(r).toFixed(config.table.td.roundingValue)).toLocaleString();

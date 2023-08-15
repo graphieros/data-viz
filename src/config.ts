@@ -42,6 +42,12 @@ export const configLine = {
     width: 500,
     toolkit: {
         show: true,
+        buttons: {
+            backgroundColor: "#FFFFFF",
+            color: "#2D353C",
+            size: 32,
+            outline: "1px solid #e1e5e8",
+        },
         csvExport: {
             show: true,
         },
@@ -78,6 +84,10 @@ export const configLine = {
             offsetY: 0,
             color: "#2D353C"
         }
+    },
+    indicator: {
+        color: "#2D353C",
+        opacity: 5,
     },
     linearProgression: {
         // show is determined on the dataset's serie
@@ -127,10 +137,6 @@ export const configLine = {
             opacity: 20,
             useGradient: true,
         },
-        indicator: {
-            color: "#2D353C",
-            opacity: 5,
-        }
     },
     title: {
         useDiv: true,
@@ -143,6 +149,7 @@ export const configLine = {
         textAlign: "center",
         marginTop: 0,
         offsetY: 0,
+        offsetX: 0,
         subtitle: {
             text: "",
             fontSize: 16,
@@ -166,6 +173,7 @@ export const configLine = {
         color: "#2D353C",
         padding: 12,
         fontSize: 14,
+        fontFamily: "inherit",
         border: "1px solid #e1e5e8",
         borderRadius: 4,
         boxShadow: "0 6px 12px -3px #2D353C33",

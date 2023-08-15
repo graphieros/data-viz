@@ -1,10 +1,10 @@
 import { DomElement } from "./constants";
-import { spawn } from "./functions";
+import { addTo, spawn } from "./functions";
 
-export function createTooltip({ id, state }: { id: string, state: any }) {
-    const existingTooltips = document.getElementsByClassName("data-vision-tooltip");
-    if (existingTooltips.length) {
-        Array.from(existingTooltips).forEach((t: any) => t.remove())
+export function createTooltipXy({ id, state, parent }: { id: string, state: any, parent: any }) {
+    const oldTooltip = document.getElementById(`tooltip_${id}`);
+    if (oldTooltip) {
+        oldTooltip.remove();
     }
 
     const config = state[id].config;
@@ -26,6 +26,7 @@ export function createTooltip({ id, state }: { id: string, state: any }) {
     tooltip.style.maxWidth = `${config.tooltip.maxWidth}px`;
     tooltip.style.transition = config.tooltip.transition;
     tooltip.style.fontVariantNumeric = "tabular-nums";
+    addTo(tooltip, "id", `tooltip_${id}`);
 
     if (state[id].type === 'xy') {
         const series = state[id].dataset.filter((ds: any) => !state[id].segregatedDatasets.includes(ds.datasetId)).map((s: any) => {
@@ -36,7 +37,7 @@ export function createTooltip({ id, state }: { id: string, state: any }) {
             }
         });
 
-        document.body.appendChild(tooltip);
+        parent.appendChild(tooltip);
         tooltip.style.display = "none";
 
         const datasetRef = state[id].dataset.filter((ds: any) => !state[id].segregatedDatasets.includes(ds.datasetId));
@@ -76,9 +77,14 @@ export function createTooltip({ id, state }: { id: string, state: any }) {
                 }
 
                 html += "</div>";
+
                 series.forEach((s: any) => {
+                    const squareIcon = `<svg viewBox="0 0 20 20" height="20" width="10"><rect fill="${s.color}" stroke="none" rx="0" x="0" y="0" height="20" width="20"/></svg>`;
+                    const lineIcon = `<svg viewBox="0 0 20 20" height="20" width="10"><rect fill="${s.color}" stroke="none" rx="0" x="0" y="10" height="6" width="20"/></svg>`;
+                    const circleIcon = `<svg viewBox="0 0 20 20" height="20" width="10"><circle cx="10" cy="10" r="10" fill="${s.color}" stroke="none"/></svg>`;
+
                     const percentage = s.values[state[id].selectedIndex] / total * 100;
-                    html += `<div><span style="color:${s.color};margin-right:3px;">${s.type === 'line' ? '▬' : s.type === 'bar' ? '◼' : '⬤'}</span>${s.name} : <b>${isNaN(s.values[state[id].selectedIndex]) ? '-' : Number(s.values[state[id].selectedIndex].toFixed(config.tooltip.value.rounding)).toLocaleString()}</b>`;
+                    html += `<div style="display:flex; flex-direction:row;align-items:center;gap:3px">${s.type === 'line' ? lineIcon : s.type === 'bar' ? squareIcon : circleIcon} <div>${s.name} : <b>${isNaN(s.values[state[id].selectedIndex]) ? '-' : Number(s.values[state[id].selectedIndex].toFixed(config.tooltip.value.rounding)).toLocaleString()}</b></div>`;
                     if (config.tooltip.percentage.show) {
                         html += `<span style="margin-left:3px;">(${isNaN(percentage) ? '-' : Number((percentage).toFixed(config.tooltip.percentage.rounding)).toLocaleString()}%)</span>`
                     }
@@ -101,7 +107,7 @@ export function createTooltip({ id, state }: { id: string, state: any }) {
 }
 
 const tooltip = {
-    createTooltip
+    createTooltipXy
 }
 
 export default tooltip;

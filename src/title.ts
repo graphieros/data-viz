@@ -56,10 +56,17 @@ export function createTitle({ id, state }: { id: string, state: any }) {
         const drawingArea = state[id].drawingArea;
 
         const title = spawnNS("text");
-        // TODO TEXT ALIGN FROM CONFIG
-        addTo(title, SvgAttribute.X, drawingArea.fullWidth / 2);
+        if (config.title.textAlign === "center") {
+            addTo(title, SvgAttribute.X, (drawingArea.fullWidth / 2) + config.title.offsetX);
+            addTo(title, SvgAttribute.TEXT_ANCHOR, "middle");
+        } else if (config.title.textAlign === "left") {
+            addTo(title, SvgAttribute.X, drawingArea.left + config.title.offsetX);
+            addTo(title, SvgAttribute.TEXT_ANCHOR, "start");
+        } else if (config.title.textAlign === "right") {
+            addTo(title, SvgAttribute.X, drawingArea.right + config.title.offsetX);
+            addTo(title, SvgAttribute.TEXT_ANCHOR, "end");
+        }
         addTo(title, SvgAttribute.Y, `${18 + config.title.offsetY}`);
-        addTo(title, SvgAttribute.TEXT_ANCHOR, "middle");
         addTo(title, "font-size", config.title.fontSize * 0.8);
         addTo(title, "fill", config.title.color);
         addTo(title, "font-weight", config.title.bold ? 'bold' : 'normal');
@@ -68,9 +75,17 @@ export function createTitle({ id, state }: { id: string, state: any }) {
 
         if (config.title.subtitle.text) {
             const subtitle = spawnNS("text");
-            addTo(subtitle, SvgAttribute.X, drawingArea.fullWidth / 2);
+            if (config.title.textAlign === "center") {
+                addTo(subtitle, SvgAttribute.X, (drawingArea.fullWidth / 2) + config.title.offsetX);
+                addTo(subtitle, SvgAttribute.TEXT_ANCHOR, "middle");
+            } else if (config.title.textAlign === "left") {
+                addTo(subtitle, SvgAttribute.X, (drawingArea.left) + config.title.offsetX);
+                addTo(subtitle, SvgAttribute.TEXT_ANCHOR, "start");
+            } else if (config.title.textAlign === "right") {
+                addTo(subtitle, SvgAttribute.X, (drawingArea.right) + config.title.offsetX);
+                addTo(subtitle, SvgAttribute.TEXT_ANCHOR, "end");
+            }
             addTo(subtitle, SvgAttribute.Y, `${18 + config.title.offsetY + (config.title.fontSize * 0.8)}`);
-            addTo(subtitle, SvgAttribute.TEXT_ANCHOR, "middle");
             addTo(subtitle, "font-size", config.title.subtitle.fontSize * 0.8);
             addTo(subtitle, "fill", config.title.subtitle.color);
             addTo(subtitle, "font-weight", config.title.subtitle.bold ? 'bold' : 'normal');
@@ -80,8 +95,8 @@ export function createTitle({ id, state }: { id: string, state: any }) {
     }
 }
 
-const titleg = {
+const title = {
     createTitle
 }
 
-export default titleg;
+export default title;

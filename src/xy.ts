@@ -1,7 +1,282 @@
-import { DomElement, SvgAttribute, SvgElement } from "./constants";
-import { spawn, spawnNS, addTo, isValidUserValue, createLinearGradient, shiftHue, closestDecimal, createArrow, createBarGradientPositive, createBarGradientNegative } from "./functions";
-import { opacity } from "./config";
+import { SvgAttribute, SvgElement } from "./constants";
+import { spawnNS, addTo, isValidUserValue, createLinearGradient, shiftHue, closestDecimal, createArrow, createBarGradientPositive, createBarGradientNegative, convertColorToHex, getDrawingArea, createUid, parseUserConfig, parseUserDataset, createConfig, createSvg, convertConfigColors, calcLinearProgression } from "./functions";
+import { configLine, opacity, palette } from "./config";
 import XY_STATE from "./state_xy";
+import { createTitle } from "./title";
+import { createLegendXy } from "./legend";
+import { createToolkit } from "./toolkit";
+import { createTooltipXy } from "./tooltip";
+
+export function prepareXy(parent: HTMLDivElement) {
+    parent.style.width = `${parent.getAttribute("width")}`;
+    const xyId = createUid();
+    addTo(parent, "id", xyId);
+    const userConfig = parseUserConfig(parent.dataset.visionConfig);
+    const dataset = parseUserDataset(parent.dataset.visionSet);
+
+    const config = createConfig({
+        userConfig,
+        defaultConfig: configLine
+    });
+
+    const svg = createSvg({
+        parent,
+        dimensions: { x: config.width, y: config.height },
+        config
+    });
+
+    const configObserver = new MutationObserver(mutations => handleConfigChange({ mutations, configObserver, id: xyId, parent, svg, dataset, state: XY_STATE })) as any;
+    const datasetObserver = new MutationObserver(mutations => handleDatasetChange({ mutations, datasetObserver, id: xyId, parent, svg, config, state: XY_STATE })) as any;
+
+    configObserver.observe(parent, { attributes: true, attributesFilter: ['data-vision-config'] });
+    datasetObserver.observe(parent, { attributes: true, attributesFilter: ['data-vision-set'] });
+
+    loadXy({
+        parent,
+        config,
+        dataset,
+        xyId,
+        svg
+    });
+
+    configObserver.disconnect();
+    datasetObserver.disconnect();
+    parent.dataset.visionConfig = "ok";
+    parent.dataset.visionSet = "ok";
+    configObserver.observe(parent, { attributes: true, attributesFilter: ['data-vision-config'] })
+    datasetObserver.observe(parent, { attributes: true, attributesFilter: ['data-vision-set'] })
+}
+
+export function loadXy({ parent, config, dataset, svg, xyId }: { parent: HTMLDivElement, config: any, dataset: any, svg: any, xyId: string }) {
+
+    const drawingArea = getDrawingArea(config);
+    const maxSeries = Math.max(...dataset.map((d: any) => d.values.length));
+    const slot = drawingArea.width / maxSeries;
+    const barSlot = drawingArea.width / maxSeries / dataset.filter((s: any) => s.type === "bar").length;
+    const max = Math.max(...dataset.map((d: any) => Math.max(...d.values)));
+    const min = Math.min(...dataset.map((d: any) => Math.min(...d.values)));
+
+    const relativeZero = (function IIFE(min) {
+        if (min >= 0) return 0;
+        return Math.abs(min);
+    }(min));
+
+    const absoluteMax = (function IIFE(max, relativeZero) {
+        return max + relativeZero
+    }(max, relativeZero));
+
+
+    Object.assign(XY_STATE, {
+        [xyId]: {
+            parent,
+            type: "xy",
+            config,
+            dataset,
+            mutableDataset: dataset,
+            drawingArea,
+            maxSeries,
+            slot,
+            barSlot,
+            max,
+            min,
+            absoluteMax,
+            relativeZero,
+            svg,
+            selectedIndex: undefined,
+            segregatedDatasets: [],
+        },
+        openTables: []
+    });
+
+    drawXy({
+        state: XY_STATE,
+        id: xyId
+    });
+}
+
+export function drawXy({ state, id }: { state: any, id: string }) {
+
+    let { parent, svg, dataset, max, min, maxSeries, drawingArea, slot, barSlot, config, relativeZero, absoluteMax } = state[id];
+
+    svg.innerHTML = "";
+
+    const mutedDataset = dataset
+        .filter((d: any) => !state[id].segregatedDatasets.includes(d.datasetId));
+
+    maxSeries = Math.max(...mutedDataset.map((d: any) => d.values.length));
+    slot = drawingArea.width / maxSeries;
+    barSlot = drawingArea.width / maxSeries / mutedDataset.filter((el: any) => el.type === "bar").length;
+    max = Math.max(...mutedDataset.map((d: any) => Math.max(...d.values)));
+    min = Math.min(...mutedDataset.map((d: any) => Math.min(...d.values)));
+
+    relativeZero = (function IIFE(min) {
+        if (min >= 0) return 0;
+        return Math.abs(min);
+    }(min));
+
+    absoluteMax = (function IIFE(max, relativeZero) {
+        return max + relativeZero
+    }(max, relativeZero));
+
+
+    function ratioToMax(val: number) {
+        return (val + relativeZero) / absoluteMax;
+    }
+
+    makeXyGrid({ id, state, relativeZero, absoluteMax, max, min, maxSeries, slot });
+
+    mutedDataset
+        .filter((d: any) => d.type === "bar")
+        .map((d: any, k: number) => {
+            return {
+                ...d,
+                plots: d.values.map((v: number, i: number) => {
+                    return {
+                        x: (drawingArea.left + (slot / 2)) + (slot * i),
+                        y: drawingArea.bottom - (drawingArea.height * ratioToMax(v)),
+                        value: v,
+                    }
+                }),
+                bars: d.values.map((v: number, i: number) => {
+                    return {
+                        x: (drawingArea.left + barSlot * k) + (barSlot * i * mutedDataset.filter((md: any) => md.type === 'bar').length) + ((barSlot / 2) * 0.1),
+                        y: drawingArea.bottom - (drawingArea.height * ratioToMax(v)),
+                        value: v
+                    }
+                })
+            }
+        })
+        .map((d: any) => {
+            return {
+                ...d,
+                linearProgression: calcLinearProgression(d.plots)
+            }
+        })
+        .forEach((serie: any, index: number) => drawSerie({
+            svg,
+            id,
+            datasetId: serie.datasetId,
+            serie,
+            config,
+            palette,
+            index,
+            zero: drawingArea.bottom - (drawingArea.height * ratioToMax(0)),
+            barSlot
+        }));
+
+    mutedDataset
+        .filter((d: any) => ["line", "plot"].includes(d.type))
+        .map((d: any) => {
+            return {
+                ...d,
+                plots: d.values.map((v: number, i: number) => {
+                    return {
+                        x: (drawingArea.left + (slot / 2)) + (slot * i),
+                        y: drawingArea.bottom - (drawingArea.height * ratioToMax(v)),
+                        value: v,
+                    }
+                })
+            }
+        })
+        .map((d: any) => {
+            return {
+                ...d,
+                linearProgression: calcLinearProgression(d.plots)
+            }
+        })
+        .forEach((serie: any, index: number) => drawSerie({
+            svg,
+            id,
+            datasetId: serie.datasetId,
+            serie,
+            config,
+            palette,
+            index,
+            zero: drawingArea.bottom - (drawingArea.height * ratioToMax(0)),
+            barSlot
+        }));
+
+    createTooltipXy({ id, state: XY_STATE, parent });
+    createTrapsXy({ id, state: XY_STATE, maxSeries });
+    createTitle({ id, state: XY_STATE });
+    createLegendXy({ id, state: XY_STATE });
+
+    if (config.toolkit.show) {
+        createToolkit({
+            id,
+            config,
+            dataset: mutedDataset,
+            parent
+        });
+    }
+}
+
+export function handleConfigChange({ mutations, configObserver, dataset, id, state, parent, svg }: { mutations: any, dataset: any, configObserver: any, id: string, state: any, parent: any, svg: any }) {
+    for (const mutation of mutations) {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'data-vision-config') {
+            const newJSONValue = mutation.target.getAttribute('data-vision-config');
+            if (newJSONValue === "ok") return;
+            try {
+                const newConfig = JSON.parse(newJSONValue);
+                state[id].config = createConfig({
+                    userConfig: newConfig,
+                    defaultConfig: configLine
+                });
+                svg.remove();
+                parent.innerHTML = "";
+                svg = createSvg({
+                    parent,
+                    dimensions: { x: newConfig.width, y: newConfig.height },
+                    config: convertConfigColors(state[id].config),
+                });
+                loadXy({
+                    parent,
+                    config: convertConfigColors(state[id].config),
+                    dataset,
+                    xyId: id,
+                    svg
+                });
+                configObserver.disconnect();
+                parent.dataset.visionConfig = "ok";
+                configObserver.observe(parent, { attributes: true, attributesFilter: ['data-vision-config'] })
+            } catch (error) {
+                console.error('Invalid JSON format:', error);
+            }
+        }
+    }
+}
+
+export function handleDatasetChange({ mutations, datasetObserver, config, id, state, parent, svg }: { mutations: any, config: any, datasetObserver: any, id: string, state: any, parent: any, svg: any }) {
+    for (const mutation of mutations) {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'data-vision-set') {
+            const newJSONValue = mutation.target.getAttribute('data-vision-set');
+            if (newJSONValue === "ok") return;
+            try {
+                const newDataset = JSON.parse(newJSONValue);
+                state[id].dataset = parseUserDataset(newDataset);
+                svg.remove();
+                parent.innerHTML = "";
+                svg = createSvg({
+                    parent,
+                    dimensions: { x: config.width, y: config.height },
+                    config,
+                });
+                loadXy({
+                    parent,
+                    config,
+                    dataset: parseUserDataset(newDataset),
+                    xyId: id,
+                    svg
+                });
+                datasetObserver.disconnect();
+                parent.dataset.visionConfig = "ok";
+                datasetObserver.observe(parent, { attributes: true, attributesFilter: ['data-vision-set'] })
+            } catch (error) {
+                console.error('Invalid JSON format:', error);
+            }
+        }
+    }
+}
 
 export function createYLabels({ svg, config, drawingArea, absoluteMax, max, min, zero }: { svg: any, config: any, drawingArea: any, absoluteMax: number, max: number, min: number, zero: any }) {
 
@@ -94,7 +369,7 @@ export function makeXyGrid({ id, state, relativeZero, absoluteMax, max, min, max
     addTo(y, SvgAttribute.Y2, drawingArea.bottom);
     addTo(y, SvgAttribute.STROKE, config.grid.stroke);
     addTo(y, SvgAttribute.STROKE_WIDTH, config.grid.strokeWidth);
-
+    addTo(y, SvgAttribute.STROKE_LINECAP, "round");
 
     const zeroLine = spawnNS(SvgElement.LINE);
     addTo(zeroLine, SvgAttribute.X1, zero.x1);
@@ -103,8 +378,11 @@ export function makeXyGrid({ id, state, relativeZero, absoluteMax, max, min, max
     addTo(zeroLine, SvgAttribute.Y2, zero.y2);
     addTo(zeroLine, SvgAttribute.STROKE, config.grid.stroke);
     addTo(zeroLine, SvgAttribute.STROKE_WIDTH, config.grid.strokeWidth);
+    addTo(zeroLine, SvgAttribute.STROKE_LINECAP, "round");
 
-    [zeroLine, y].forEach(line => svg.appendChild(line));
+    if (config.grid.show) {
+        [zeroLine, y].forEach(line => svg.appendChild(line));
+    }
 
     if (config.grid.yLabels.show && state[id].segregatedDatasets.length < state[id].dataset.length) {
         createYLabels({
@@ -139,7 +417,7 @@ export function makeXyGrid({ id, state, relativeZero, absoluteMax, max, min, max
     }
 }
 
-export function createTraps({ id, state, maxSeries }: { id: string, state: any, maxSeries: number }) {
+export function createTrapsXy({ id, state, maxSeries }: { id: string, state: any, maxSeries: number }) {
 
     const svg = state[id].svg;
     const series = state[id].dataset.map((d: any) => d.datapoints);
@@ -147,7 +425,7 @@ export function createTraps({ id, state, maxSeries }: { id: string, state: any, 
     const drawingArea = state[id].drawingArea;
 
     function select(rect: any, i: number) {
-        addTo(rect, SvgAttribute.FILL, `${config.line.indicator.color}${opacity[config.line.indicator.opacity]}`);
+        addTo(rect, SvgAttribute.FILL, `${config.indicator.color}${opacity[config.indicator.opacity]}`);
         state[id].selectedIndex = i;
         state.isTooltip = true;
         series.forEach((s: any) => {
@@ -197,8 +475,8 @@ export function calcRectY({ plot, zero }: { plot: { x: number, y: number, value:
     return zero;
 }
 
-export function drawSerie({ datasetId, id, svg, serie, config, palette, index, drawingArea, zero, barSlot }: { datasetId: string, id: string, svg: SVGElement, serie: any, config: any, palette: string[], index: number, drawingArea: any, zero: number, barSlot: number }) {
-    const color = serie.color || palette[index] || palette[index % palette.length];
+export function drawSerie({ datasetId, id, svg, serie, config, palette, index, zero, barSlot }: { datasetId: string, id: string, svg: SVGElement, serie: any, config: any, palette: string[], index: number, zero: number, barSlot: number }) {
+    const color = convertColorToHex(serie.color) || palette[index] || palette[index % palette.length];
     let gradientId = "";
     let arrowId = "";
     let rectGradientPositiveId = "";
@@ -231,7 +509,7 @@ export function drawSerie({ datasetId, id, svg, serie, config, palette, index, d
         });
     }
 
-    if (serie.showProgression) {
+    if (serie.showProgression && serie.values.length > 1) {
         arrowId = createArrow({
             color,
             defs,
@@ -341,7 +619,7 @@ export function drawSerie({ datasetId, id, svg, serie, config, palette, index, d
         });
     }
 
-    if (serie.showProgression) {
+    if (serie.showProgression && serie.values.length > 1) {
         const progressLine = spawnNS(SvgElement.LINE);
         addTo(progressLine, SvgAttribute.X1, serie.linearProgression.x1);
         addTo(progressLine, SvgAttribute.X2, serie.linearProgression.x2);
@@ -358,7 +636,7 @@ export function drawSerie({ datasetId, id, svg, serie, config, palette, index, d
         addTo(progressLabel, SvgAttribute.X, serie.linearProgression.x2 + config.linearProgression.label.offsetX);
         addTo(progressLabel, SvgAttribute.Y, serie.linearProgression.y2 - 6 + config.linearProgression.label.offsetY);
         addTo(progressLabel, SvgAttribute.TEXT_ANCHOR, "middle");
-        progressLabel.innerHTML = serie.linearProgression.slope < 0 ? `+${Number(Math.abs((serie.linearProgression.slope * 100)).toFixed(config.linearProgression.label.rounding)).toLocaleString()}%` : `-${Number(Math.abs((serie.linearProgression.slope * 100)).toFixed(config.linearProgression.label.rounding)).toLocaleString()}%`;
+        progressLabel.innerHTML = `${Number(((serie.linearProgression.trend)).toFixed(config.linearProgression.label.rounding)).toLocaleString()}%`;
         [progressLine, progressLabel].forEach((el: any) => svg.appendChild(el))
     }
 
@@ -366,62 +644,9 @@ export function drawSerie({ datasetId, id, svg, serie, config, palette, index, d
     return svg;
 }
 
-export function createTooltip({ id, config }: { id: string, config: any }) {
-    const svg = XY_STATE[id].svg;
-    const tooltip = spawn(DomElement.DIV) as unknown as HTMLDivElement;
-    tooltip.classList.add("data-vision-tooltip");
-
-    tooltip.style.position = "fixed";
-    tooltip.style.background = config.tooltip.backgroundColor;
-    tooltip.style.padding = `${config.tooltip.padding}px`;
-    tooltip.style.border = config.tooltip.border;
-    tooltip.style.borderRadius = `${config.tooltip.borderRadius}px`;
-    tooltip.style.boxShadow = config.tooltip.boxShadow;
-    tooltip.style.fontSize = `${config.tooltip.fontSize}px`;
-    tooltip.style.fontFamily = config.fontFamily;
-    tooltip.style.color = config.tooltip.color;
-    tooltip.style.zIndex = "100";
-    tooltip.style.maxWidth = `${config.tooltip.maxWidth}px`;
-    tooltip.style.transition = config.tooltip.transition;
-
-    const series = XY_STATE[id].dataset.map((s: any) => {
-        return {
-            ...s,
-            name: s.name,
-            color: s.color,
-        }
-    });
-
-    svg.addEventListener("mousemove", (e: any) => {
-        tooltip.remove();
-        if (XY_STATE.isTooltip) {
-            document.body.appendChild(tooltip);
-            const rect = tooltip.getBoundingClientRect();
-            XY_STATE.clientX = e.clientX - rect.width / 2;
-            XY_STATE.clientY = e.clientY + 24 + config.tooltip.offsetY;
-            tooltip.style.left = `${XY_STATE.clientX + rect.width > window.innerWidth ? XY_STATE.clientX - rect.width / 2 : XY_STATE.clientX - rect.width < 0 ? XY_STATE.clientX + rect.width / 2 : XY_STATE.clientX}px`;
-            tooltip.style.top = `${XY_STATE.clientY + rect.height > window.innerHeight ? XY_STATE.clientY - (rect.height) - 64 : XY_STATE.clientY}px`;
-            tooltip.innerHTML = `
-                <div style="display:block; width:100%; border-bottom:1px solid #e1e5e8; padding:0 0 6px 0; margin-bottom:6px;">${config.yLabels.values[XY_STATE[id].selectedIndex]}</div>
-            `;
-            series.forEach((s: any) => {
-                tooltip.innerHTML += `<div><span style="color:${s.color};margin-right:3px;">⬤</span>${s.name} : <span style="">${s.values[XY_STATE[id].selectedIndex]}</span></div>`
-            });
-        }
-    });
-
-    svg.addEventListener("mouseleave", () => {
-        XY_STATE.clientX = 0;
-        XY_STATE.clientY = 0;
-        tooltip.remove();
-    });
+const xy = {
+    prepareXy,
+    drawXy
 }
 
-const utilLine = {
-    makeXyGrid,
-    drawSerie,
-    createTraps,
-    createTooltip
-}
-
-export default utilLine;
+export default xy;

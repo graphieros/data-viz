@@ -15,7 +15,7 @@
         class="data-vision"
         data-vision-xy 
         data-vision-set='[
-            {"name": "serie 1","type":"bar","showLabels":true, "showProgression": true,
+            {"name": "serie 1","type":"bar","showLabels":true, "color":"#6376DD", "showProgression": true,
             "values": [11.566666, -13, -8, -5, -3, -2, -1, -1, 0, 1, 1, 2, 3, 5, 8, 13, 21]},
             {"name": "serie 2","type":"line","showLabels":true,"showArea": true,
             "values": [0, -1, -1, -2, -3, -5, -8, -13, -21]},
@@ -23,29 +23,187 @@
             "values": [2, 7, 9, -6, 4, 12, 25, 16]}
         ]'
         data-vision-config='{
-            "backgroundColor" : "#fafafa",
+            "backgroundColor": "#1A1A1A",
+            "color": "#CCCCCC",
             "fontFamily": "Arial",
-            "line": {
-                "plots": {
-                    "show": true
-                }
+            "height": 316,
+            "width": 500,
+            "toolkit": {
+              "show": true,
+              "buttons": {
+                "backgroundColor": "#1A1A1A",
+                "color":"#CCCCCC",
+                "size": 28
+              },
+              "csvExport": {
+                "show": true
+              }
+            },
+            "padding": {
+              "top": 48,
+              "right": 24,
+              "bottom": 48,
+              "left": 48
             },
             "grid": {
-                "xLabels": {
-                    "values": ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC", "JAN", "FEV", "MAR", "APR", "MAY"]
-                }
+              "show": true,
+              "stroke": "#565656",
+              "strokeWidth": 1,
+              "verticalSeparators": {
+                "show": true,
+                "stroke": "#565656",
+                "strokeWidth": 0.5
+              },
+              "yLabels": {
+                "show": true,
+                "fontSize": 12,
+                "bold": false,
+                "offsetX": 0,
+                "color": "#CCCCCC",
+                "rounding": 0
+              },
+              "xLabels": {
+                "show": true,
+                "showOnlyFirstAndLast": true,
+                "values": ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC", "JAN", "FEB", "MAR", "APR", "MAY"],
+                "fontSize": 8,
+                "bold": false,
+                "offsetY": 0,
+                "color": "#CCCCCC"
+              }
             },
+            "linearProgression": {
+              "strokeWidth": 1,
+              "label": {
+                "show": true,
+                "fontSize": 10,
+                "rounding": 1,
+                "offsetY": 0,
+                "offsetX": 0
+              }
+            },
+            "bars": {
+              "strokeWidth": 0,
+              "useGradient": true,
+              "borderRadius": 1,
+              "dataLabels": {
+                "show": true,
+                "color": "#2D353C",
+                "fontSize": 10,
+                "roundingValue": 0,
+                "positive": {
+                  "offsetY": 0
+                },
+                "negative": {
+                  "offsetY": 0
+                }
+              }
+            },
+            "line": {
+              "strokeWidth": 2,
+              "plots": {
+                "show": true,
+                "radius": 3,
+                "strokeWidth": 1,
+                "stroke": "#1A1A1A"
+              },
+              "dataLabels": {
+                "show": true,
+                "color": "#CCCCCC",
+                "fontSize": 10,
+                "offsetY": 0,
+                "roundingValue": 0
+              },
+              "area": {
+                "opacity": 20,
+                "useGradient": true
+              }
+            },
+            "indicator": {
+                "color": "#FFFFFF",
+                "opacity": 5
+              },
             "title": {
-                "useDiv": true,
-                "text": "Title",
-                "subtitle": {
-                    "text": "Subtitle"
-                }
+              "useDiv": true,
+              "show": true,
+              "text": "Title",
+              "fontSize": 20,
+              "bold": true,
+              "color": "#2D353C",
+              "backgroundColor": "#FFFFFF",
+              "textAlign": "center",
+              "marginTop": 0,
+              "offsetY": 0,
+              "offsetX": 0,
+              "subtitle": {
+                "text": "Subtitle",
+                "fontSize": 16,
+                "bold": false,
+                "color": "#CCCCCC"
+              }
             },
-            "legend" : {
-                "useDiv": true
+            "legend": {
+              "useDiv": true,
+              "show": true,
+              "fontSize": 14,
+              "color": "#2D353C",
+              "backgroundColor": "#FFFFFF",
+              "offsetY": 0,
+              "bold": true,
+              "roundingValue": 0,
+              "paddingY": 12
+            },
+            "tooltip": {
+              "backgroundColor": "#1A1A1A",
+              "color": "#CCCCCC",
+              "padding": 12,
+              "fontSize": 14,
+              "border": "1px solid #e1e5e8",
+              "borderRadius": 4,
+              "boxShadow": "0 6px 12px -3px #2D353C33",
+              "offsetY": 12,
+              "maxWidth": 300,
+              "value": {
+                "rounding": 0,
+                "bold": true
+              },
+              "percentage": {
+                "show": true,
+                "rounding": 0
+              },
+              "average": {
+                "translation": "Average",
+                "show": true,
+                "rounding": 0
+              },
+              "total": {
+                "translation": "Total",
+                "show": true,
+                "rounding": 0
+              }
+            },
+            "table": {
+              "show": false,
+              "th": {
+                "backgroundColor": "#FAFAFA",
+                "color": "#2D353C",
+                "fontSize": 14,
+                "roundingValue": 0,
+                "roundingPercentage": 0,
+                "prefix": "",
+                "suffix": ""
+              },
+              "td": {
+                "backgroundColor": "#FFFFFF",
+                "color": "#2D353C",
+                "fontSize": 14,
+                "roundingValue": 1,
+                "roundedPercentage": 0,
+                "prefix": "",
+                "suffix": ""
+              }
             }
-        }'
+          }'
     ></div>
 </body>
 </html>

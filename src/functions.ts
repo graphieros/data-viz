@@ -214,7 +214,7 @@ export function parseUserDataset(userDataset: any, type = 'object') {
             return {
                 ...s,
                 datasetId: createUid(),
-                color: s.color || palette[i] || palette[i % i],
+                color: convertColorToHex(s.color) || palette[i] || palette[i % i],
                 datapoints: [],
                 lines: [],
                 areas: [],
@@ -226,7 +226,7 @@ export function parseUserDataset(userDataset: any, type = 'object') {
             return {
                 ...s,
                 datasetId: createUid(),
-                color: s.color || palette[i] || palette[i % i],
+                color: convertColorToHex(s.color) || palette[i] || palette[i % i],
                 datapoints: [],
                 lines: [],
                 areas: [],
@@ -241,6 +241,91 @@ export function parseUserDataset(userDataset: any, type = 'object') {
             return [];
         }
     }
+}
+
+export function decimalToHex(decimal: any) {
+    const hex = Number(decimal).toString(16);
+    return hex.length === 1 ? "0" + hex : hex;
+}
+
+export function hslToRgb(h: any, s: any, l: any) {
+    h /= 360;
+    s /= 100;
+    l /= 100;
+
+    let r, g, b;
+
+    if (s === 0) {
+        r = g = b = l;
+    } else {
+        const hueToRgb = (p: any, q: any, t: any) => {
+            if (t < 0) t += 1;
+            if (t > 1) t -= 1;
+            if (t < 1 / 6) return p + (q - p) * 6 * t;
+            if (t < 1 / 2) return q;
+            if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+            return p;
+        };
+
+        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        const p = 2 * l - q;
+        r = hueToRgb(p, q, h + 1 / 3);
+        g = hueToRgb(p, q, h);
+        b = hueToRgb(p, q, h - 1 / 3);
+    }
+
+    return [
+        Math.round(r * 255),
+        Math.round(g * 255),
+        Math.round(b * 255),
+    ];
+}
+
+export function convertColorToHex(color: any) {
+    const hexRegex = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i;
+    const rgbRegex = /^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)$/i;
+    const hslRegex = /^hsla?\((\d+),\s*([\d.]+)%,\s*([\d.]+)%(?:,\s*[\d.]+)?\)$/i;
+
+    if ([undefined, null, NaN].includes(color)) {
+        return null;
+    }
+
+    if (color === 'transparent') {
+        return "#FFFFFF00";
+    }
+
+    let match;
+
+    if ((match = color.match(hexRegex))) {
+        const [, r, g, b] = match;
+        return `#${r}${g}${b}`;
+    } else if ((match = color.match(rgbRegex))) {
+        const [, r, g, b] = match;
+        return `#${decimalToHex(r)}${decimalToHex(g)}${decimalToHex(b)}`;
+    } else if ((match = color.match(hslRegex))) {
+        const [, h, s, l] = match;
+        const rgb = hslToRgb(Number(h), Number(s), Number(l));
+        return `#${decimalToHex(rgb[0])}${decimalToHex(rgb[1])}${decimalToHex(rgb[2])}`;
+    }
+
+    return null;
+}
+
+export function convertConfigColors(config: any) {
+    for (const key in config) {
+        if (typeof config[key] === 'object' && !Array.isArray(config[key]) && config[key] !== null) {
+            convertConfigColors(config[key]);
+        } else if (key === 'color' || key === 'backgroundColor' || key === 'stroke') {
+            if (config[key] === '') {
+                config[key] = '#000000';
+            } else if (config[key] === 'transparent') {
+                config[key] = '#FFFFFF00'
+            } else {
+                config[key] = convertColorToHex(config[key]);
+            }
+        }
+    }
+    return config;
 }
 
 export function treeShake({ userConfig, defaultConfig }: { userConfig: any, defaultConfig: any }) {
@@ -267,7 +352,7 @@ export function treeShake({ userConfig, defaultConfig }: { userConfig: any, defa
             }
         }
     });
-    return finalConfig;
+    return convertConfigColors(finalConfig);
 }
 
 export function clearDataAttributes(node: any) {
@@ -516,15 +601,36 @@ export function calcLinearProgression(plots: { x: number, y: number, value: numb
     x2 = plots[len - 1].x;
     y1 = slope * x1 + intercept;
     y2 = slope * x2 + intercept;
-    return { x1, y1, x2, y2, slope };
+
+    const trend = calcPercentageTrend(plots.map(p => p.value));
+
+    return { x1, y1, x2, y2, slope, trend };
+}
+
+export function calcPercentageTrend(arr: number[]) {
+    const initialNumber = arr[0];
+    const lastNumber = arr[arr.length - 1];
+    const overallChange = lastNumber - initialNumber;
+
+    let totalMagnitude = 0;
+
+    for (let i = 1; i < arr.length; i++) {
+        const difference = Math.abs(arr[i] - arr[i - 1]);
+        totalMagnitude += difference;
+    }
+
+    const percentageTrend = (overallChange / totalMagnitude) * 100;
+    return percentageTrend;
 }
 
 const utils = {
     addTo,
     applyEllipsis,
     calcLinearProgression,
+    calcPercentageTrend,
     clearDataAttributes,
     closestDecimal,
+    convertColorToHex,
     createArrow,
     createBarGradientPositive,
     createBarGradientNegative,

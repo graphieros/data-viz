@@ -1,8 +1,8 @@
-import { drawChart } from "./charts";
+import { drawXy } from "./xy";
 import { SvgAttribute } from "./constants";
 import { addTo, spawn, spawnNS } from "./functions";
 
-export function segregate({ datasetId, id, state, legendItem }: { datasetId: string, id: string, state: any, legendItem: any }) {
+export function segregateXy({ datasetId, id, state, legendItem }: { datasetId: string, id: string, state: any, legendItem: any }) {
 
     if (state[id].segregatedDatasets.includes(datasetId)) {
         state[id].segregatedDatasets = state[id].segregatedDatasets.filter((el: string) => el !== datasetId);
@@ -20,13 +20,13 @@ export function segregate({ datasetId, id, state, legendItem }: { datasetId: str
         state[id].dataset.find((el: any) => el.datasetId === datasetId).dataLabels.forEach((dataLabel: any) => dataLabel.style.opacity = "0");
         state[id].dataset.find((el: any) => el.datasetId === datasetId).areas.forEach((area: any) => area.style.opacity = "0");
     }
-    drawChart({
+    drawXy({
         state,
         id
     });
 }
 
-export function createLegend({ id, state }: { id: string, state: any }) {
+export function createLegendXy({ id, state }: { id: string, state: any }) {
     const { svg, parent, config, drawingArea, dataset } = state[id];
 
     if (!config.legend.show) return;
@@ -64,7 +64,7 @@ export function createLegend({ id, state }: { id: string, state: any }) {
         legendItem.style.gap = "3px";
         legendItem.innerHTML = `<span style="color:${ds.color}">${ds.type === 'line' ? '▬' : ds.type === 'bar' ? '◼' : '⬤'}</span><span>${ds.name}</span>`
         legendWrapper.appendChild(legendItem);
-        legendItem.addEventListener("click", () => segregate({ datasetId: ds.datasetId, id, state, legendItem }))
+        legendItem.addEventListener("click", () => segregateXy({ datasetId: ds.datasetId, id, state, legendItem }))
         if (state[id].segregatedDatasets.includes(ds.datasetId)) {
             legendItem.style.opacity = "0.5";
         } else {
@@ -87,7 +87,7 @@ export function createLegend({ id, state }: { id: string, state: any }) {
 }
 
 const legend = {
-    createLegend
+    createLegendXy
 }
 
 export default legend;
