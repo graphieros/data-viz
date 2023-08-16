@@ -1,18 +1,19 @@
+import { CssClass, DataVisionAttribute } from "./constants";
 import {
     prepareXy
 } from "./xy"
 
 
 export function createCharts(attr = "") {
-    const targets = document.getElementsByClassName("data-vision") as any
+    const targets: HTMLCollection = document.getElementsByClassName(CssClass.DATA_VISION);
 
     if (targets.length) {
 
-        if (!attr || attr === "data-vision-xy") {
-            const type_xy = Array.from(targets).filter((node: any) => {
-                return node.hasAttribute("data-vision-xy")
+        if (!attr || attr === DataVisionAttribute.XY) {
+            const type_xy = Array.from(targets).filter((dataVisionWrapper) => {
+                return dataVisionWrapper.hasAttribute(DataVisionAttribute.XY)
             });
-            type_xy.forEach(line => prepareXy(line as unknown as HTMLDivElement));
+            type_xy.forEach(xy => prepareXy(xy as unknown as HTMLDivElement));
         }
     }
 }

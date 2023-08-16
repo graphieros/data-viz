@@ -1,11 +1,4 @@
-interface State {
-    [key: string]: any;
-    clientX: number;
-    clientY: number;
-    isTooltip: boolean;
-    openTables: string[]
-}
-
+import { XyState } from "../types"
 
 export const XY_STATE = {
     isTooltip: false,
@@ -14,4 +7,4 @@ export const XY_STATE = {
     openTables: []
 }
 
-export default XY_STATE as unknown as State;
+export default XY_STATE as unknown as XyState;

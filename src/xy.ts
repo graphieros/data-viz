@@ -1,4 +1,4 @@
-import { SvgAttribute, SvgElement } from "./constants";
+import { Chart, DataVisionAttribute, EventTrigger, SvgAttribute, SvgElement } from "./constants";
 import { spawnNS, addTo, isValidUserValue, createLinearGradient, shiftHue, closestDecimal, createArrow, createBarGradientPositive, createBarGradientNegative, convertColorToHex, getDrawingArea, createUid, parseUserConfig, parseUserDataset, createConfig, createSvg, convertConfigColors, calcLinearProgression } from "./functions";
 import { configLine, opacity, palette } from "./config";
 import XY_STATE from "./state_xy";
@@ -6,15 +6,16 @@ import { createTitle } from "./title";
 import { createLegendXy } from "./legend";
 import { createToolkit } from "./toolkit";
 import { createTooltipXy } from "./tooltip";
+import { XyDatasetItem, Config, DrawingArea, XyState, XyStateObject, Line, LinearProgression } from "../types";
 
 export function prepareXy(parent: HTMLDivElement) {
     parent.style.width = `${parent.getAttribute("width")}`;
     const xyId = createUid();
     addTo(parent, "id", xyId);
     const userConfig = parseUserConfig(parent.dataset.visionConfig);
-    const dataset = parseUserDataset(parent.dataset.visionSet);
+    const dataset: XyDatasetItem[] = parseUserDataset(parent.dataset.visionSet);
 
-    const config = createConfig({
+    const config: Config = createConfig({
         userConfig,
         defaultConfig: configLine
     });
@@ -25,11 +26,11 @@ export function prepareXy(parent: HTMLDivElement) {
         config
     });
 
-    const configObserver = new MutationObserver(mutations => handleConfigChange({ mutations, configObserver, id: xyId, parent, svg, dataset, state: XY_STATE })) as any;
-    const datasetObserver = new MutationObserver(mutations => handleDatasetChange({ mutations, datasetObserver, id: xyId, parent, svg, config, state: XY_STATE })) as any;
+    const configObserver: MutationObserver = new MutationObserver(mutations => handleConfigChange({ mutations, configObserver, id: xyId, parent, svg, dataset, state: XY_STATE }));
+    const datasetObserver: MutationObserver = new MutationObserver(mutations => handleDatasetChange({ mutations, datasetObserver, id: xyId, parent, svg, config, state: XY_STATE })) as any;
 
-    configObserver.observe(parent, { attributes: true, attributesFilter: ['data-vision-config'] });
-    datasetObserver.observe(parent, { attributes: true, attributesFilter: ['data-vision-set'] });
+    configObserver.observe(parent, { attributes: true, attributeFilter: [DataVisionAttribute.CONFIG] });
+    datasetObserver.observe(parent, { attributes: true, attributeFilter: [DataVisionAttribute.DATASET] });
 
     loadXy({
         parent,
@@ -41,20 +42,20 @@ export function prepareXy(parent: HTMLDivElement) {
 
     configObserver.disconnect();
     datasetObserver.disconnect();
-    parent.dataset.visionConfig = "ok";
-    parent.dataset.visionSet = "ok";
-    configObserver.observe(parent, { attributes: true, attributesFilter: ['data-vision-config'] })
-    datasetObserver.observe(parent, { attributes: true, attributesFilter: ['data-vision-set'] })
+    parent.dataset.visionConfig = DataVisionAttribute.OK;
+    parent.dataset.visionSet = DataVisionAttribute.OK;
+    configObserver.observe(parent, { attributes: true, attributeFilter: [DataVisionAttribute.CONFIG] })
+    datasetObserver.observe(parent, { attributes: true, attributeFilter: [DataVisionAttribute.DATASET] })
 }
 
-export function loadXy({ parent, config, dataset, svg, xyId }: { parent: HTMLDivElement, config: any, dataset: any, svg: any, xyId: string }) {
+export function loadXy({ parent, config, dataset, svg, xyId }: { parent: HTMLDivElement, config: Config, dataset: XyDatasetItem[], svg: SVGElement, xyId: string }) {
 
-    const drawingArea = getDrawingArea(config);
+    const drawingArea: DrawingArea = getDrawingArea(config);
     const maxSeries = Math.max(...dataset.map((d: any) => d.values.length));
     const slot = drawingArea.width / maxSeries;
     const barSlot = drawingArea.width / maxSeries / dataset.filter((s: any) => s.type === "bar").length;
-    const max = Math.max(...dataset.map((d: any) => Math.max(...d.values)));
-    const min = Math.min(...dataset.map((d: any) => Math.min(...d.values)));
+    const max = Math.max(...dataset.map(d => Math.max(...d.values)));
+    const min = Math.min(...dataset.map(d => Math.min(...d.values)));
 
     const relativeZero = (function IIFE(min) {
         if (min >= 0) return 0;
@@ -94,20 +95,33 @@ export function loadXy({ parent, config, dataset, svg, xyId }: { parent: HTMLDiv
     });
 }
 
-export function drawXy({ state, id }: { state: any, id: string }) {
+export function drawXy({ state, id }: { state: XyState, id: string }) {
 
-    let { parent, svg, dataset, max, min, maxSeries, drawingArea, slot, barSlot, config, relativeZero, absoluteMax } = state[id];
+    let {
+        absoluteMax,
+        barSlot,
+        config,
+        dataset,
+        drawingArea,
+        max,
+        maxSeries,
+        min,
+        parent,
+        relativeZero,
+        slot,
+        svg,
+    } = state[id] as XyStateObject;
 
     svg.innerHTML = "";
 
     const mutedDataset = dataset
         .filter((d: any) => !state[id].segregatedDatasets.includes(d.datasetId));
 
-    maxSeries = Math.max(...mutedDataset.map((d: any) => d.values.length));
+    maxSeries = Math.max(...mutedDataset.map((d => d.values.length)));
     slot = drawingArea.width / maxSeries;
-    barSlot = drawingArea.width / maxSeries / mutedDataset.filter((el: any) => el.type === "bar").length;
-    max = Math.max(...mutedDataset.map((d: any) => Math.max(...d.values)));
-    min = Math.min(...mutedDataset.map((d: any) => Math.min(...d.values)));
+    barSlot = drawingArea.width / maxSeries / mutedDataset.filter(el => el.type === "bar").length;
+    max = Math.max(...mutedDataset.map(d => Math.max(...d.values)));
+    min = Math.min(...mutedDataset.map(d => Math.min(...d.values)));
 
     relativeZero = (function IIFE(min) {
         if (min >= 0) return 0;
@@ -126,33 +140,33 @@ export function drawXy({ state, id }: { state: any, id: string }) {
     makeXyGrid({ id, state, relativeZero, absoluteMax, max, min, maxSeries, slot });
 
     mutedDataset
-        .filter((d: any) => d.type === "bar")
-        .map((d: any, k: number) => {
+        .filter(d => d.type === "bar")
+        .map((d, k: number) => {
             return {
                 ...d,
-                plots: d.values.map((v: number, i: number) => {
+                plots: d.values.map((v, i: number) => {
                     return {
                         x: (drawingArea.left + (slot / 2)) + (slot * i),
                         y: drawingArea.bottom - (drawingArea.height * ratioToMax(v)),
                         value: v,
                     }
                 }),
-                bars: d.values.map((v: number, i: number) => {
+                bars: d.values.map((v, i: number) => {
                     return {
-                        x: (drawingArea.left + barSlot * k) + (barSlot * i * mutedDataset.filter((md: any) => md.type === 'bar').length) + ((barSlot / 2) * 0.1),
+                        x: (drawingArea.left + barSlot * k) + (barSlot * i * mutedDataset.filter(md => md.type === 'bar').length) + ((barSlot / 2) * 0.1),
                         y: drawingArea.bottom - (drawingArea.height * ratioToMax(v)),
                         value: v
                     }
                 })
             }
         })
-        .map((d: any) => {
+        .map(d => {
             return {
                 ...d,
                 linearProgression: calcLinearProgression(d.plots)
             }
         })
-        .forEach((serie: any, index: number) => drawSerie({
+        .forEach((serie, index: number) => drawSerie({
             svg,
             id,
             datasetId: serie.datasetId,
@@ -165,11 +179,11 @@ export function drawXy({ state, id }: { state: any, id: string }) {
         }));
 
     mutedDataset
-        .filter((d: any) => ["line", "plot"].includes(d.type))
-        .map((d: any) => {
+        .filter(d => ["line", "plot"].includes(d.type))
+        .map(d => {
             return {
                 ...d,
-                plots: d.values.map((v: number, i: number) => {
+                plots: d.values.map((v, i: number) => {
                     return {
                         x: (drawingArea.left + (slot / 2)) + (slot * i),
                         y: drawingArea.bottom - (drawingArea.height * ratioToMax(v)),
@@ -178,13 +192,13 @@ export function drawXy({ state, id }: { state: any, id: string }) {
                 })
             }
         })
-        .map((d: any) => {
+        .map(d => {
             return {
                 ...d,
                 linearProgression: calcLinearProgression(d.plots)
             }
         })
-        .forEach((serie: any, index: number) => drawSerie({
+        .forEach((serie, index: number) => drawSerie({
             svg,
             id,
             datasetId: serie.datasetId,
@@ -211,11 +225,11 @@ export function drawXy({ state, id }: { state: any, id: string }) {
     }
 }
 
-export function handleConfigChange({ mutations, configObserver, dataset, id, state, parent, svg }: { mutations: any, dataset: any, configObserver: any, id: string, state: any, parent: any, svg: any }) {
+export function handleConfigChange({ mutations, configObserver, dataset, id, state, parent, svg }: { mutations: MutationRecord[], dataset: any, configObserver: MutationObserver, id: string, state: XyState, parent: HTMLDivElement, svg: SVGElement }) {
     for (const mutation of mutations) {
-        if (mutation.type === 'attributes' && mutation.attributeName === 'data-vision-config') {
-            const newJSONValue = mutation.target.getAttribute('data-vision-config');
-            if (newJSONValue === "ok") return;
+        if (mutation.type === 'attributes' && mutation.attributeName === DataVisionAttribute.CONFIG) {
+            const newJSONValue = (mutation.target as HTMLElement).getAttribute(DataVisionAttribute.CONFIG);
+            if (newJSONValue === DataVisionAttribute.OK || newJSONValue === null) return;
             try {
                 const newConfig = JSON.parse(newJSONValue);
                 state[id].config = createConfig({
@@ -237,20 +251,20 @@ export function handleConfigChange({ mutations, configObserver, dataset, id, sta
                     svg
                 });
                 configObserver.disconnect();
-                parent.dataset.visionConfig = "ok";
-                configObserver.observe(parent, { attributes: true, attributesFilter: ['data-vision-config'] })
+                parent.dataset.visionConfig = DataVisionAttribute.OK;
+                configObserver.observe(parent, { attributes: true, attributeFilter: [DataVisionAttribute.CONFIG] })
             } catch (error) {
-                console.error('Invalid JSON format:', error);
+                console.error('Data Vision exception. Invalid JSON format:', error);
             }
         }
     }
 }
 
-export function handleDatasetChange({ mutations, datasetObserver, config, id, state, parent, svg }: { mutations: any, config: any, datasetObserver: any, id: string, state: any, parent: any, svg: any }) {
+export function handleDatasetChange({ mutations, datasetObserver, config, id, state, parent, svg }: { mutations: MutationRecord[], config: Config, datasetObserver: MutationObserver, id: string, state: XyState, parent: HTMLDivElement, svg: SVGElement }) {
     for (const mutation of mutations) {
-        if (mutation.type === 'attributes' && mutation.attributeName === 'data-vision-set') {
-            const newJSONValue = mutation.target.getAttribute('data-vision-set');
-            if (newJSONValue === "ok") return;
+        if (mutation.type === 'attributes' && mutation.attributeName === DataVisionAttribute.DATASET) {
+            const newJSONValue = (mutation.target as HTMLElement).getAttribute(DataVisionAttribute.DATASET);
+            if (newJSONValue === DataVisionAttribute.OK || newJSONValue === null) return;
             try {
                 const newDataset = JSON.parse(newJSONValue);
                 state[id].dataset = parseUserDataset(newDataset);
@@ -269,16 +283,16 @@ export function handleDatasetChange({ mutations, datasetObserver, config, id, st
                     svg
                 });
                 datasetObserver.disconnect();
-                parent.dataset.visionConfig = "ok";
-                datasetObserver.observe(parent, { attributes: true, attributesFilter: ['data-vision-set'] })
+                parent.dataset.visionConfig = DataVisionAttribute.OK;
+                datasetObserver.observe(parent, { attributes: true, attributeFilter: [DataVisionAttribute.DATASET] })
             } catch (error) {
-                console.error('Invalid JSON format:', error);
+                console.error('Data Vision exception. Invalid JSON format:', error);
             }
         }
     }
 }
 
-export function createYLabels({ svg, config, drawingArea, absoluteMax, max, min, zero }: { svg: any, config: any, drawingArea: any, absoluteMax: number, max: number, min: number, zero: any }) {
+export function createYLabels({ svg, config, drawingArea, absoluteMax, max, min, zero }: { svg: SVGElement, config: Config, drawingArea: DrawingArea, absoluteMax: number, max: number, min: number, zero: Line }) {
 
     const positiveStep = closestDecimal(max / 5);
     const positiveSteps = [];
@@ -298,11 +312,11 @@ export function createYLabels({ svg, config, drawingArea, absoluteMax, max, min,
             value: -value
         });
     }
-    [...positiveSteps, ...negativeSteps].forEach((step: any) => {
+    [...positiveSteps, ...negativeSteps].forEach((step: { y: number, value: number }) => {
         const yLabel = spawnNS(SvgElement.TEXT);
         addTo(yLabel, SvgAttribute.FILL, config.grid.yLabels.color);
-        addTo(yLabel, "font-size", config.grid.yLabels.fontSize);
-        addTo(yLabel, "font-weight", config.grid.yLabels.bold ? "bold" : "normal");
+        addTo(yLabel, SvgAttribute.FONT_SIZE, config.grid.yLabels.fontSize);
+        addTo(yLabel, SvgAttribute.FONT_WEIGHT, config.grid.yLabels.bold ? "bold" : "normal");
         addTo(yLabel, SvgAttribute.X, drawingArea.left - 12 + config.grid.yLabels.offsetX);
         addTo(yLabel, SvgAttribute.Y, step.y + config.grid.yLabels.fontSize / 3);
         addTo(yLabel, SvgAttribute.TEXT_ANCHOR, "end");
@@ -316,19 +330,19 @@ export function createYLabels({ svg, config, drawingArea, absoluteMax, max, min,
         addTo(yTick, SvgAttribute.Y1, step.y);
         addTo(yTick, SvgAttribute.Y2, step.y);
         if ((step.value > max || step.value < min) && step.value !== 0) return;
-        [yLabel, yTick].forEach((el: any) => svg.appendChild(el));
+        [yLabel, yTick].forEach(el => svg.appendChild(el));
     });
 }
 
-function createXLabels({ config, drawingArea, svg, maxSeries, slot }: { config: any, drawingArea: any, svg: any, maxSeries: number, slot: number }) {
+function createXLabels({ config, drawingArea, svg, maxSeries, slot }: { config: Config, drawingArea: DrawingArea, svg: SVGElement, maxSeries: number, slot: number }) {
     for (let i = 0; i < maxSeries; i += 1) {
         const xLabel = spawnNS(SvgElement.TEXT);
         addTo(xLabel, SvgAttribute.X, drawingArea.left + (slot * i) + (slot / 2));
         addTo(xLabel, SvgAttribute.Y, drawingArea.bottom + 12 + config.grid.xLabels.fontSize + config.grid.xLabels.offsetY);
         addTo(xLabel, SvgAttribute.TEXT_ANCHOR, "middle");
-        addTo(xLabel, "font-size", config.grid.xLabels.fontSize);
+        addTo(xLabel, SvgAttribute.FONT_SIZE, config.grid.xLabels.fontSize);
         addTo(xLabel, SvgAttribute.FILL, config.grid.xLabels.color);
-        addTo(xLabel, "font-weight", config.grid.xLabels.bold ? 'bold' : 'normal');
+        addTo(xLabel, SvgAttribute.FONT_WEIGHT, config.grid.xLabels.bold ? 'bold' : 'normal');
         xLabel.textContent = config.grid.xLabels.values[i];
         if (!config.grid.xLabels.showOnlyFirstAndLast || (config.grid.xLabels.showOnlyFirstAndLast && (i === 0 || i === maxSeries - 1))) {
             svg.appendChild(xLabel);
@@ -336,7 +350,7 @@ function createXLabels({ config, drawingArea, svg, maxSeries, slot }: { config: 
     }
 }
 
-export function createVerticalSeparator({ config, drawingArea, svg, maxSeries, slot }: { config: any, drawingArea: any, svg: any, maxSeries: any, slot: number }) {
+export function createVerticalSeparator({ config, drawingArea, svg, maxSeries, slot }: { config: Config, drawingArea: DrawingArea, svg: SVGElement, maxSeries: number, slot: number }) {
     for (let i = 1; i < maxSeries + 1; i += 1) {
         const separator = spawnNS(SvgElement.LINE);
         addTo(separator, SvgAttribute.X1, drawingArea.left + (slot * i));
@@ -349,12 +363,12 @@ export function createVerticalSeparator({ config, drawingArea, svg, maxSeries, s
     }
 }
 
-export function makeXyGrid({ id, state, relativeZero, absoluteMax, max, min, maxSeries, slot }: { id: string, state: any, relativeZero: number, absoluteMax: number, max: number, min: number, maxSeries: number, slot: number }) {
+export function makeXyGrid({ id, state, relativeZero, absoluteMax, max, min, maxSeries, slot }: { id: string, state: XyState, relativeZero: number, absoluteMax: number, max: number, min: number, maxSeries: number, slot: number }) {
     const drawingArea = state[id].drawingArea;
     const config = state[id].config;
     const svg = state[id].svg;
 
-    const zero = {
+    const zero: Line = {
         x1: drawingArea.left,
         x2: drawingArea.right,
         y1: drawingArea.bottom - (drawingArea.height * (relativeZero / absoluteMax)),
@@ -417,27 +431,27 @@ export function makeXyGrid({ id, state, relativeZero, absoluteMax, max, min, max
     }
 }
 
-export function createTrapsXy({ id, state, maxSeries }: { id: string, state: any, maxSeries: number }) {
+export function createTrapsXy({ id, state, maxSeries }: { id: string, state: XyState, maxSeries: number }) {
 
-    const svg = state[id].svg;
-    const series = state[id].dataset.map((d: any) => d.datapoints);
-    const config = state[id].config;
-    const drawingArea = state[id].drawingArea;
+    const svg = state[id].svg as SVGElement;
+    const series = (state[id].dataset as XyDatasetItem[]).map(d => d.datapoints) as XyDatasetItem[];
+    const config = state[id].config as Config;
+    const drawingArea = state[id].drawingArea as DrawingArea;
 
-    function select(rect: any, i: number) {
+    function select(rect: HTMLElement | SVGElement, i: number) {
         addTo(rect, SvgAttribute.FILL, `${config.indicator.color}${opacity[config.indicator.opacity]}`);
         state[id].selectedIndex = i;
         state.isTooltip = true;
-        series.forEach((s: any) => {
+        series.forEach(s => {
             if (s[state[id].selectedIndex]) {
                 addTo(s[state[id].selectedIndex], SvgAttribute.R, config.line.plots.radius * 1.6);
             }
         })
     }
-    function unselect(rect: any) {
+    function unselect(rect: SVGElement | HTMLElement) {
         addTo(rect, SvgAttribute.FILL, "transparent");
         state.isTooltip = false;
-        series.forEach((s: any) => {
+        series.forEach(s => {
             if (s[state[id].selectedIndex]) {
                 addTo(s[state[id].selectedIndex], SvgAttribute.R, config.line.plots.radius);
             }
@@ -445,19 +459,19 @@ export function createTrapsXy({ id, state, maxSeries }: { id: string, state: any
         state[id].selectedIndex = 0;
     }
 
-    const traps: any = [];
+    const traps: SVGElement[] = [];
     for (let i = 0; i < maxSeries; i += 1) {
         const t = spawnNS(SvgElement.RECT);
         addTo(t, SvgAttribute.X, drawingArea.left + (i * (drawingArea.width / maxSeries)));
         addTo(t, SvgAttribute.Y, drawingArea.top);
-        addTo(t, "height", drawingArea.height);
-        addTo(t, "width", drawingArea.width / maxSeries);
+        addTo(t, SvgAttribute.HEIGHT, drawingArea.height);
+        addTo(t, SvgAttribute.WIDTH, drawingArea.width / maxSeries);
         addTo(t, SvgAttribute.FILL, "transparent");
         traps.push(t);
     }
-    Array.from(traps).forEach((trap: any, i: number) => {
-        trap.addEventListener("mouseover", () => select(trap, i));
-        trap.addEventListener("mouseout", () => unselect(trap))
+    Array.from(traps).forEach((trap, i: number) => {
+        trap.addEventListener(EventTrigger.MOUSEOVER, () => select(trap, i));
+        trap.addEventListener(EventTrigger.MOUSEOUT, () => unselect(trap))
         svg.appendChild(trap);
     });
 }
@@ -475,14 +489,14 @@ export function calcRectY({ plot, zero }: { plot: { x: number, y: number, value:
     return zero;
 }
 
-export function drawSerie({ datasetId, id, svg, serie, config, palette, index, zero, barSlot }: { datasetId: string, id: string, svg: SVGElement, serie: any, config: any, palette: string[], index: number, zero: number, barSlot: number }) {
+export function drawSerie({ datasetId, id, svg, serie, config, palette, index, zero, barSlot }: { datasetId: string, id: string, svg: SVGElement, serie: XyDatasetItem, config: Config, palette: string[], index: number, zero: number, barSlot: number }) {
     const color = convertColorToHex(serie.color) || palette[index] || palette[index % palette.length];
     let gradientId = "";
     let arrowId = "";
     let rectGradientPositiveId = "";
     let rectGradientNegativeId = "";
 
-    const thisDataset = XY_STATE[id].dataset.find((d: any) => d.datasetId === datasetId);
+    const thisDataset = (XY_STATE[id].dataset as XyDatasetItem[]).find(d => d.datasetId === datasetId) as unknown as XyDatasetItem;
 
     const defs = spawnNS("defs") as SVGDefsElement;
 
@@ -521,18 +535,18 @@ export function drawSerie({ datasetId, id, svg, serie, config, palette, index, z
     svg.appendChild(defs);
 
     // CLEAR STATE
-    thisDataset.lines = [];
-    thisDataset.areas = [];
-    thisDataset.datapoints = [];
-    thisDataset.dataLabels = [];
-    thisDataset.linearProgressions = [];
+    thisDataset.lines = [] as SVGElement[];
+    thisDataset.areas = [] as SVGElement[];
+    thisDataset.datapoints = [] as SVGElement[];
+    thisDataset.dataLabels = [] as SVGElement[];
+    thisDataset.linearProgressions = [] as LinearProgression[];
 
-    if (serie.type === "line") {
+    if (serie.type === Chart.LINE) {
         if (thisDataset.showArea) {
             const start = { x: serie.plots[0].x, y: zero };
-            const end = { x: serie.plots.at(-1).x, y: zero };
+            const end = { x: serie.plots.at(-1)?.x, y: zero };
             const path: any = [];
-            serie.plots.forEach((plot: any) => {
+            serie.plots.forEach(plot => {
                 path.push(`${plot.x},${plot.y} `)
             });
             const areaPath = [start.x, start.y, ...path, end.x, end.y].toString();
@@ -545,7 +559,7 @@ export function drawSerie({ datasetId, id, svg, serie, config, palette, index, z
         }
     }
 
-    if (serie.type === "line") {
+    if (serie.type === Chart.LINE) {
         serie.plots.forEach((plot: any, i: number) => {
             if (i < serie.plots.length - 1 && isValidUserValue(plot.value) && isValidUserValue(serie.plots[i + 1].value)) {
                 const l = spawnNS(SvgElement.LINE);
@@ -563,17 +577,17 @@ export function drawSerie({ datasetId, id, svg, serie, config, palette, index, z
         });
     }
 
-    if (serie.type === "bar") {
-        serie.bars.forEach((bar: any, i: number) => {
+    if (serie.type === Chart.BAR) {
+        serie.bars.forEach(bar => {
             const b = spawnNS(SvgElement.RECT);
             addTo(b, SvgAttribute.X, bar.x);
             if (config.bars.borderRadius) {
-                addTo(b, "rx", config.bars.borderRadius);
+                addTo(b, SvgAttribute.RX, config.bars.borderRadius);
             }
             addTo(b, SvgAttribute.Y, calcRectY({ plot: bar, zero }));
-            addTo(b, "height", calcRectHeight({ plot: bar, zero }));
-            addTo(b, "width", barSlot * 0.9);
-            addTo(b, SvgAttribute.FILL, config.bars.useGradient ? bar.value > 0 ? rectGradientPositiveId : rectGradientNegativeId : bar.color);
+            addTo(b, SvgAttribute.HEIGHT, calcRectHeight({ plot: bar, zero }));
+            addTo(b, SvgAttribute.WIDTH, barSlot * 0.9);
+            addTo(b, SvgAttribute.FILL, config.bars.useGradient ? bar.value > 0 ? rectGradientPositiveId : rectGradientNegativeId : bar.color ? bar.color : '#CCCCCC');
             thisDataset.datapoints.push(b);
             svg.appendChild(b);
             if (config.bars.dataLabels.show && (Object.hasOwn(serie, 'showLabels') ? serie.showLabels : true)) {
@@ -590,8 +604,8 @@ export function drawSerie({ datasetId, id, svg, serie, config, palette, index, z
         });
     }
 
-    if (["line", "plot"].includes(serie.type)) {
-        serie.plots.forEach((plot: any, i: number) => {
+    if ([Chart.LINE, Chart.PLOT].includes(serie.type)) {
+        serie.plots.forEach(plot => {
             // plots
             if (config.line.plots.show && isValidUserValue(plot.value)) {
                 const c = spawnNS(SvgElement.CIRCLE);
@@ -627,20 +641,18 @@ export function drawSerie({ datasetId, id, svg, serie, config, palette, index, z
         addTo(progressLine, SvgAttribute.Y2, serie.linearProgression.y2);
         addTo(progressLine, SvgAttribute.STROKE, serie.color);
         addTo(progressLine, SvgAttribute.STROKE_WIDTH, config.linearProgression.strokeWidth);
-        addTo(progressLine, "stroke-dasharray", config.linearProgression.strokeWidth * 2)
-        addTo(progressLine, "marker-end", `url(#${arrowId})`)
+        addTo(progressLine, SvgAttribute.STROKE_DASHARRAY, config.linearProgression.strokeWidth * 2)
+        addTo(progressLine, SvgAttribute.MARKER_END, `url(#${arrowId})`)
 
         const progressLabel = spawnNS(SvgElement.TEXT);
         addTo(progressLabel, SvgAttribute.FILL, color);
-        addTo(progressLabel, "font-size", config.linearProgression.label.fontSize);
+        addTo(progressLabel, SvgAttribute.FONT_SIZE, config.linearProgression.label.fontSize);
         addTo(progressLabel, SvgAttribute.X, serie.linearProgression.x2 + config.linearProgression.label.offsetX);
         addTo(progressLabel, SvgAttribute.Y, serie.linearProgression.y2 - 6 + config.linearProgression.label.offsetY);
         addTo(progressLabel, SvgAttribute.TEXT_ANCHOR, "middle");
         progressLabel.innerHTML = `${Number(((serie.linearProgression.trend)).toFixed(config.linearProgression.label.rounding)).toLocaleString()}%`;
         [progressLine, progressLabel].forEach((el: any) => svg.appendChild(el))
     }
-
-
     return svg;
 }
 

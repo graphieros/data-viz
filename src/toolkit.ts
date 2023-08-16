@@ -1,3 +1,5 @@
+import { Config, XyDatasetItem } from "../types";
+import { DomElement } from "./constants";
 import { addTo, grabId, spawn } from "./functions";
 import XY_STATE from "./state_xy";
 
@@ -7,7 +9,7 @@ export function createCsvContent(rows: string[][]) {
 
 export function downloadCsv({ csvContent, title = "data-vision" }: { csvContent: string, title?: string }) {
     const encodedUri = encodeURI(csvContent);
-    const link = spawn("a");
+    const link = spawn(DomElement.A);
     link.setAttribute("href", encodedUri);
     link.setAttribute("download", `${title}.csv`);
     document.body.appendChild(link);
@@ -16,7 +18,7 @@ export function downloadCsv({ csvContent, title = "data-vision" }: { csvContent:
     window.URL.revokeObjectURL(encodedUri);
 }
 
-export function createToolkit({ id, config, dataset, parent }: { id: string, config: any, dataset: any, parent: HTMLDivElement }) {
+export function createToolkit({ id, config, dataset, parent }: { id: string, config: Config, dataset: XyDatasetItem[], parent: HTMLDivElement }) {
 
     const oldToolkit = grabId(`toolkit_${id}`);
     if (oldToolkit) {
@@ -32,11 +34,11 @@ export function createToolkit({ id, config, dataset, parent }: { id: string, con
 
     if (XY_STATE[id].type === "xy") {
         dataRows = config.grid.xLabels.values.map((v: string, i: number) => {
-            return [v, dataset.map((ds: any) => isNaN(ds.values[i]) ? "-" : ds.values[i]).join(",")]
+            return [v, dataset.map(ds => isNaN(ds.values[i]) ? "-" : ds.values[i]).join(",")]
         });
         rows = [
-            ['', ...dataset.map((ds: any) => ds.name)],
-            ['Σ', ...dataset.map((ds: any) => ds.values.reduce((a: number, b: number) => a + b, 0))],
+            ['', ...dataset.map(ds => ds.name)],
+            ['Σ', ...dataset.map(ds => ds.values.reduce((a: number, b: number) => a + b, 0))],
             ...dataRows
         ];
     };
@@ -111,9 +113,9 @@ export function createToolkit({ id, config, dataset, parent }: { id: string, con
     const tbody = spawn("TBODY");
 
     const TrTh = rows.slice(0, 2);
-    TrTh.forEach((t: any) => {
+    TrTh.forEach(t => {
         const tr = spawn("TR");
-        t.forEach((h: any) => {
+        t.forEach(h => {
             const th = spawn("TH");
             th.innerHTML = isNaN(h) || h === '' ? h : Number(Number(h).toFixed(config.table.th.roundingValue)).toLocaleString();
             if (!isNaN(h) || h === "Σ") {
@@ -133,9 +135,9 @@ export function createToolkit({ id, config, dataset, parent }: { id: string, con
         return [row[0], ...row[1].split(",")];
     });
 
-    TrTd.forEach((t: any) => {
+    TrTd.forEach(t => {
         const tr = spawn("TR");
-        t.forEach((r: any) => {
+        t.forEach(r => {
             const td = spawn("TD");
             td.style.border = "1px solid #e1e5e8";
             td.style.textAlign = "right";
@@ -150,7 +152,7 @@ export function createToolkit({ id, config, dataset, parent }: { id: string, con
         tbody.appendChild(tr);
     });
 
-    [thead, tbody].forEach((el: any) => table.appendChild(el));
+    [thead, tbody].forEach(el => table.appendChild(el));
     tableWrapper.appendChild(table);
 
     if (config.table.show || XY_STATE.openTables.includes(id)) {

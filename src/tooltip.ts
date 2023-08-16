@@ -1,7 +1,8 @@
+import { XyDatasetItem, XyState } from "../types";
 import { DomElement } from "./constants";
 import { addTo, spawn } from "./functions";
 
-export function createTooltipXy({ id, state, parent }: { id: string, state: any, parent: any }) {
+export function createTooltipXy({ id, state, parent }: { id: string, state: XyState, parent: HTMLDivElement }) {
     const oldTooltip = document.getElementById(`tooltip_${id}`);
     if (oldTooltip) {
         oldTooltip.remove();
@@ -29,28 +30,31 @@ export function createTooltipXy({ id, state, parent }: { id: string, state: any,
     addTo(tooltip, "id", `tooltip_${id}`);
 
     if (state[id].type === 'xy') {
-        const series = state[id].dataset.filter((ds: any) => !state[id].segregatedDatasets.includes(ds.datasetId)).map((s: any) => {
-            return {
-                ...s,
-                name: s.name,
-                color: s.color,
-            }
-        });
+        const series = (state[id].dataset as XyDatasetItem[])
+            .filter(ds => !state[id].segregatedDatasets.includes(ds.datasetId))
+            .map(s => {
+                return {
+                    ...s,
+                    name: s.name,
+                    color: s.color,
+                }
+            });
 
         parent.appendChild(tooltip);
         tooltip.style.display = "none";
 
-        const datasetRef = state[id].dataset.filter((ds: any) => !state[id].segregatedDatasets.includes(ds.datasetId));
+        const datasetRef = (state[id].dataset as XyDatasetItem[])
+            .filter(ds => !state[id].segregatedDatasets.includes(ds.datasetId));
 
-        svg.addEventListener("mousemove", (e: any) => {
+        svg.addEventListener("mousemove", (e: { clientX: number; clientY: number; }) => {
             const average = datasetRef
-                .map((ds: any) => ds.values[state[id].selectedIndex])
+                .map(ds => ds.values[state[id].selectedIndex])
                 .filter((v: number) => !isNaN(v))
                 .reduce((a: number, b: number) => a + b, 0) / datasetRef.map((ds: any) => ds.values[state[id].selectedIndex])
                     .filter((v: number) => !isNaN(v)).length;
 
             const total = datasetRef
-                .map((ds: any) => ds.values[state[id].selectedIndex])
+                .map(ds => ds.values[state[id].selectedIndex])
                 .filter((v: number) => !isNaN(v))
                 .reduce((a: number, b: number) => a + b, 0);
 
@@ -78,7 +82,7 @@ export function createTooltipXy({ id, state, parent }: { id: string, state: any,
 
                 html += "</div>";
 
-                series.forEach((s: any) => {
+                series.forEach(s => {
                     const squareIcon = `<svg viewBox="0 0 20 20" height="20" width="10"><rect fill="${s.color}" stroke="none" rx="0" x="0" y="0" height="20" width="20"/></svg>`;
                     const lineIcon = `<svg viewBox="0 0 20 20" height="20" width="10"><rect fill="${s.color}" stroke="none" rx="0" x="0" y="10" height="6" width="20"/></svg>`;
                     const circleIcon = `<svg viewBox="0 0 20 20" height="20" width="10"><circle cx="10" cy="10" r="10" fill="${s.color}" stroke="none"/></svg>`;

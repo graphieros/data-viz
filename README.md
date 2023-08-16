@@ -1,4 +1,10 @@
-## data-vision
+<p align="center">
+    <a href="https://data-vision.graphieros.com/"><img src="https://data-vision.graphieros.com/android-chrome-192x192.png"></a>
+    <h1 align="center">data-vision</h1>
+</p>
 
-spawning chart library.
+[Interactive documentation](https://data-vision.graphieros.com/)
+
+A lightweight and user-empowering Javascript chart library.
+
 Currently in early stages.

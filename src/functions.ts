@@ -1,3 +1,4 @@
+import { Config, DrawingArea, XyDatasetItem } from "../types";
 import { palette } from "./config";
 import { SvgAttribute } from "./constants";
 
@@ -208,7 +209,7 @@ export function parseUserConfig(userConfig: any) {
     }
 }
 
-export function parseUserDataset(userDataset: any, type = 'object') {
+export function parseUserDataset(userDataset: string | any[] | undefined, type = 'object') {
     if (typeof userDataset === "string") {
         return JSON.parse(userDataset).map((s: any, i: number) => {
             return {
@@ -281,12 +282,12 @@ export function hslToRgb(h: any, s: any, l: any) {
     ];
 }
 
-export function convertColorToHex(color: any) {
+export function convertColorToHex(color: string | null | undefined) {
     const hexRegex = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i;
     const rgbRegex = /^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)$/i;
     const hslRegex = /^hsla?\((\d+),\s*([\d.]+)%,\s*([\d.]+)%(?:,\s*[\d.]+)?\)$/i;
 
-    if ([undefined, null, NaN].includes(color)) {
+    if ([undefined, null, NaN, ""].includes(color) || !color) {
         return null;
     }
 
@@ -311,7 +312,7 @@ export function convertColorToHex(color: any) {
     return null;
 }
 
-export function convertConfigColors(config: any) {
+export function convertConfigColors(config: Config) {
     for (const key in config) {
         if (typeof config[key] === 'object' && !Array.isArray(config[key]) && config[key] !== null) {
             convertConfigColors(config[key]);
@@ -328,7 +329,7 @@ export function convertConfigColors(config: any) {
     return config;
 }
 
-export function treeShake({ userConfig, defaultConfig }: { userConfig: any, defaultConfig: any }) {
+export function treeShake({ userConfig, defaultConfig }: { userConfig: Config, defaultConfig: Config }) {
     const finalConfig = { ...defaultConfig };
 
     Object.keys(finalConfig).forEach(key => {
@@ -355,12 +356,7 @@ export function treeShake({ userConfig, defaultConfig }: { userConfig: any, defa
     return convertConfigColors(finalConfig);
 }
 
-export function clearDataAttributes(node: any) {
-    node.dataset.visionConfig = "ok";
-    node.dataset.visionSet = "ok"
-}
-
-export function createSvg({ parent, dimensions, config }: { parent: HTMLDivElement, dimensions: { x: number, y: number }, config: any }) {
+export function createSvg({ parent, dimensions, config }: { parent: HTMLDivElement, dimensions: { x: number, y: number }, config: Config }) {
     const svg = spawnNS("svg");
     svg.setAttribute('viewBox', `0 0 ${dimensions.x} ${dimensions.y}`);
     addTo(svg, "xmlns", "http://www.w3.org/2000/svg");
@@ -375,14 +371,14 @@ export function createSvg({ parent, dimensions, config }: { parent: HTMLDivEleme
     return svg;
 }
 
-export function createConfig({ userConfig, defaultConfig }: { userConfig: any, defaultConfig: any }) {
+export function createConfig({ userConfig, defaultConfig }: { userConfig: Config, defaultConfig: Config }) {
     return treeShake({
         userConfig,
         defaultConfig
     });
 }
 
-export function getDrawingArea(config: any) {
+export function getDrawingArea(config: Config): DrawingArea {
     const { top, right, bottom, left } = config.padding;
     const { height, width } = config;
 
@@ -628,7 +624,6 @@ const utils = {
     applyEllipsis,
     calcLinearProgression,
     calcPercentageTrend,
-    clearDataAttributes,
     closestDecimal,
     convertColorToHex,
     createArrow,

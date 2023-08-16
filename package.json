@@ -1,8 +1,23 @@
 {
   "name": "data-vision",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "private": false,
   "type": "module",
+  "description": "A lightweight and user-empowering Javascript chart library",
+  "keywords": [
+    "chart",
+    "graph",
+    "line",
+    "bar",
+    "chart library",
+    "graph library",
+    "typescript"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/graphieros/data-viz"
+  },
+  "homepage": "https://data-vision.graphieros.com/",
   "main": "./dist/data-vision.umd.cjs",
   "module": "./dist/data-vision.js",
   "types": "./dist/index.d.ts",

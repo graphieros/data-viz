@@ -1,24 +1,11 @@
 export namespace CssClass {
+    export const DATA_VISION = "data-vision";
 }
-
-export namespace CssDisplay {
-    export const NONE = "none";
-    export const FLEX = "flex";
-    export const INITIAL = "initial";
-}
-export namespace CssPointer {
-    export const DEFAULT = "default";
-    export const POINTER = "pointer";
-}
-export namespace CssUnit {
-    export const PX = "px";
-}
-export namespace CssVisibility {
-    export const INITIAL = "initial";
-    export const HIDDEN = "hidden";
-}
-
-export namespace DataAttribute {
+export namespace DataVisionAttribute {
+    export const CONFIG = "data-vision-config";
+    export const DATASET = "data-vision-set";
+    export const XY = "data-vision-xy";
+    export const OK = "ok";
 }
 
 export namespace DomElement {
@@ -55,6 +42,8 @@ export namespace EventTrigger {
     export const CLICK = "click";
     export const MOUSEMOVE = "mousemove";
     export const MOUSELEAVE = "mouseleave";
+    export const MOUSEOVER = "mouseover";
+    export const MOUSEOUT = "mouseout"
 }
 
 export namespace KeyboardCode {
@@ -86,24 +75,30 @@ export namespace Svg {
 }
 
 export namespace SvgAttribute {
-    export const X1 = "x1";
-    export const Y1 = "y1";
-    export const X2 = "x2";
-    export const Y2 = "y2";
-    export const X = "x";
-    export const Y = "y";
     export const CX = "cx";
     export const CY = "cy";
-    export const R = "r";
     export const D = "d";
-    export const TEXT_ANCHOR = "text-anchor";
-    export const STROKE = "stroke";
-    export const STROKE_WIDTH = "stroke-width";
-    export const STROKE_LINECAP = "stroke-linecap";
-    export const STROKE_LINEJOIN = "stroke-linejoin";
     export const FILL = "fill";
     export const FONT_SIZE = "font-size";
+    export const FONT_WEIGHT = "font-weight";
+    export const HEIGHT = "height";
+    export const MARKER_END = "marker-end";
+    export const R = "r";
+    export const RX = "rx";
+    export const STROKE = "stroke";
+    export const STROKE_DASHARRAY = "stroke-dasharray";
+    export const STROKE_LINECAP = "stroke-linecap";
+    export const STROKE_LINEJOIN = "stroke-linejoin";
+    export const STROKE_WIDTH = "stroke-width";
+    export const TEXT_ANCHOR = "text-anchor";
     export const VIEWBOX = "viewBox";
+    export const WIDTH = "width";
+    export const X = "x";
+    export const X1 = "x1";
+    export const X2 = "x2";
+    export const Y = "y";
+    export const Y1 = "y1";
+    export const Y2 = "y2";
 }
 
 export namespace SvgElement {
@@ -126,6 +121,7 @@ export namespace SvgTextPosition {
 export namespace Chart {
     export const LINE = "line";
     export const BAR = "bar";
+    export const PLOT = "plot";
     export const DONUT = "donut";
     export const GAUGE = "gauge";
 }

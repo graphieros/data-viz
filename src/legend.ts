@@ -1,24 +1,25 @@
 import { drawXy } from "./xy";
-import { SvgAttribute } from "./constants";
+import { DomElement, SvgAttribute, SvgElement } from "./constants";
 import { addTo, spawn, spawnNS } from "./functions";
+import { XyDatasetItem, XyState, XyStateObject } from "../types";
 
-export function segregateXy({ datasetId, id, state, legendItem }: { datasetId: string, id: string, state: any, legendItem: any }) {
+export function segregateXy({ datasetId, id, state, legendItem }: { datasetId: string, id: string, state: XyState, legendItem: HTMLElement }) {
 
-    if (state[id].segregatedDatasets.includes(datasetId)) {
+    if (state[id].segregatedDatasets.includes(datasetId) && state[id].dataset) {
         state[id].segregatedDatasets = state[id].segregatedDatasets.filter((el: string) => el !== datasetId);
         legendItem.style.opacity = "1";
-        state[id].dataset.find((el: any) => el.datasetId === datasetId).datapoints.forEach((plot: any) => plot.style.opacity = "1");
-        state[id].dataset.find((el: any) => el.datasetId === datasetId).lines.forEach((line: any) => line.style.opacity = "1");
-        state[id].dataset.find((el: any) => el.datasetId === datasetId).dataLabels.forEach((dataLabel: any) => dataLabel.style.opacity = "1");
-        state[id].dataset.find((el: any) => el.datasetId === datasetId).areas.forEach((area: any) => area.style.opacity = "1");
+        (state[id].dataset).find((el: XyDatasetItem) => el.datasetId === datasetId).datapoints.forEach((plot: { style: { opacity: string; }; }) => plot.style.opacity = "1");
+        state[id].dataset.find((el: XyDatasetItem) => el.datasetId === datasetId).lines.forEach((line: { style: { opacity: string; }; }) => line.style.opacity = "1");
+        state[id].dataset.find((el: XyDatasetItem) => el.datasetId === datasetId).dataLabels.forEach((dataLabel: { style: { opacity: string; }; }) => dataLabel.style.opacity = "1");
+        state[id].dataset.find((el: XyDatasetItem) => el.datasetId === datasetId).areas.forEach((area: { style: { opacity: string; }; }) => area.style.opacity = "1");
     } else {
         state[id].segregatedDatasets.push(datasetId);
         legendItem.style.opacity = "0.5";
-        state[id].mutableDataset = state[id].mutableDataset.filter((el: any) => el.datasetId !== datasetId);
-        state[id].dataset.find((el: any) => el.datasetId === datasetId).datapoints.forEach((plot: any) => plot.style.opacity = "0");
-        state[id].dataset.find((el: any) => el.datasetId === datasetId).lines.forEach((line: any) => line.style.opacity = "0");
-        state[id].dataset.find((el: any) => el.datasetId === datasetId).dataLabels.forEach((dataLabel: any) => dataLabel.style.opacity = "0");
-        state[id].dataset.find((el: any) => el.datasetId === datasetId).areas.forEach((area: any) => area.style.opacity = "0");
+        state[id].mutableDataset = state[id].mutableDataset.filter((el: XyDatasetItem) => el.datasetId !== datasetId);
+        state[id].dataset.find((el: XyDatasetItem) => el.datasetId === datasetId).datapoints.forEach((plot: { style: { opacity: string; }; }) => plot.style.opacity = "0");
+        state[id].dataset.find((el: XyDatasetItem) => el.datasetId === datasetId).lines.forEach((line: { style: { opacity: string; }; }) => line.style.opacity = "0");
+        state[id].dataset.find((el: XyDatasetItem) => el.datasetId === datasetId).dataLabels.forEach((dataLabel: { style: { opacity: string; }; }) => dataLabel.style.opacity = "0");
+        state[id].dataset.find((el: XyDatasetItem) => el.datasetId === datasetId).areas.forEach((area: { style: { opacity: string; }; }) => area.style.opacity = "0");
     }
     drawXy({
         state,
@@ -26,8 +27,8 @@ export function segregateXy({ datasetId, id, state, legendItem }: { datasetId: s
     });
 }
 
-export function createLegendXy({ id, state }: { id: string, state: any }) {
-    const { svg, parent, config, drawingArea, dataset } = state[id];
+export function createLegendXy({ id, state }: { id: string, state: XyState }) {
+    const { svg, parent, config, drawingArea, dataset } = state[id] as XyStateObject;
 
     if (!config.legend.show) return;
 
@@ -36,7 +37,7 @@ export function createLegendXy({ id, state }: { id: string, state: any }) {
         oldLegend.remove();
     }
 
-    const legendWrapper = spawn("DIV");
+    const legendWrapper = spawn(DomElement.DIV);
     addTo(legendWrapper, "id", `legend_${id}`);
     legendWrapper.style.width = "100%";
     if (config.legend.useDiv) {
@@ -54,8 +55,8 @@ export function createLegendXy({ id, state }: { id: string, state: any }) {
     legendWrapper.style.columnGap = "12px";
     legendWrapper.style.userSelect = "none";
 
-    dataset.forEach((ds: any) => {
-        const legendItem = spawn("DIV");
+    dataset.forEach(ds => {
+        const legendItem = spawn(DomElement.DIV);
         legendItem.style.display = "flex";
         legendItem.style.cursor = "pointer";
         legendItem.style.flexDirection = "flex-row";
@@ -75,11 +76,11 @@ export function createLegendXy({ id, state }: { id: string, state: any }) {
     if (config.legend.useDiv) {
         parent.appendChild(legendWrapper);
     } else {
-        const foreignObject = spawnNS("foreignObject");
+        const foreignObject = spawnNS(SvgElement.FOREIGNOBJECT);
         addTo(foreignObject, SvgAttribute.X, "0");
         addTo(foreignObject, SvgAttribute.Y, drawingArea.bottom);
-        addTo(foreignObject, "width", drawingArea.fullWidth);
-        addTo(foreignObject, "height", drawingArea.fullHeight - drawingArea.bottom);
+        addTo(foreignObject, SvgAttribute.WIDTH, drawingArea.fullWidth);
+        addTo(foreignObject, SvgAttribute.HEIGHT, drawingArea.fullHeight - drawingArea.bottom);
         foreignObject.style.overflow = "visible";
         foreignObject.appendChild(legendWrapper);
         svg.appendChild(foreignObject);
