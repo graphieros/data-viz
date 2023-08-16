@@ -717,7 +717,7 @@ export function drawSerie({ datasetId, id, svg, serie, config, palette, index, z
         addTo(progressLabel, SvgAttribute.TEXT_ANCHOR, "middle");
         progressLabel.innerHTML = `${Number(((serie.linearProgression.trend)).toFixed(config.linearProgression.label.rounding)).toLocaleString()}%`;
 
-        if (config.linearProgression.show) {
+        if (config.linearProgression.label.show) {
             svg.appendChild(progressLabel);
         }
     }
