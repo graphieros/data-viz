@@ -18,7 +18,7 @@ export function downloadCsv({ csvContent, title = "data-vision" }: { csvContent:
     window.URL.revokeObjectURL(encodedUri);
 }
 
-export function createToolkit({ id, config, dataset, parent }: { id: string, config: Config, dataset: XyDatasetItem[], parent: HTMLDivElement }) {
+export function createToolkitXy({ id, config, dataset, parent }: { id: string, config: Config, dataset: XyDatasetItem[], parent: HTMLDivElement }) {
 
     const oldToolkit = grabId(`toolkit_${id}`);
     if (oldToolkit) {
@@ -39,6 +39,10 @@ export function createToolkit({ id, config, dataset, parent }: { id: string, con
         rows = [
             ['', ...dataset.map(ds => ds.name)],
             ['Σ', ...dataset.map(ds => ds.values.reduce((a: number, b: number) => a + b, 0))],
+            ['μ', ...dataset.map(ds => {
+                const len = ds.values.length;
+                return ds.values.reduce((a: number, b: number) => a + b, 0) / len
+            })],
             ...dataRows
         ];
     };
@@ -112,13 +116,13 @@ export function createToolkit({ id, config, dataset, parent }: { id: string, con
 
     const tbody = spawn("TBODY");
 
-    const TrTh = rows.slice(0, 2);
+    const TrTh = rows.slice(0, 3);
     TrTh.forEach(t => {
         const tr = spawn("TR");
         t.forEach(h => {
             const th = spawn("TH");
             th.innerHTML = isNaN(h) || h === '' ? h : Number(Number(h).toFixed(config.table.th.roundingValue)).toLocaleString();
-            if (!isNaN(h) || h === "Σ") {
+            if (!isNaN(h) || ['μ', 'Σ'].includes(h)) {
                 th.style.textAlign = "right";
                 th.style.paddingRight = "6px";
             }
@@ -131,7 +135,7 @@ export function createToolkit({ id, config, dataset, parent }: { id: string, con
         thead.appendChild(tr);
     });
 
-    const TrTd = rows.slice(2).map((row: any) => {
+    const TrTd = rows.slice(3).map((row: any) => {
         return [row[0], ...row[1].split(",")];
     });
 
@@ -183,7 +187,7 @@ export function createToolkit({ id, config, dataset, parent }: { id: string, con
 }
 
 const toolkit = {
-    createToolkit
+    createToolkitXy
 }
 
 export default toolkit;

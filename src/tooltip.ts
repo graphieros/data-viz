@@ -72,12 +72,12 @@ export function createTooltipXy({ id, state, parent }: { id: string, state: XySt
 
                 if (config.tooltip.total.show) {
                     html += "<br>";
-                    html += `<span>${config.tooltip.total.translation} : </span><b>${isNaN(total) ? '-' : Number(total.toFixed(config.tooltip.total.rounding)).toLocaleString()}</b>`
+                    html += `<span>${config.tooltip.total.translation} : </span><span style="font-weight:${config.tooltip.value.bold ? 'bold' : 'normal'}">${isNaN(total) ? '-' : Number(total.toFixed(config.tooltip.total.rounding)).toLocaleString()}</span>`
                 }
 
                 if (config.tooltip.average.show) {
                     html += "<br>";
-                    html += `<span>${config.tooltip.average.translation} : </span><b>${isNaN(average) ? '-' : Number(average.toFixed(config.tooltip.average.rounding)).toLocaleString()}</b>`
+                    html += `<span>${config.tooltip.average.translation} : </span><span style="font-weight:${config.tooltip.value.bold ? 'bold' : 'normal'}">${isNaN(average) ? '-' : Number(average.toFixed(config.tooltip.average.rounding)).toLocaleString()}</span>`
                 }
 
                 html += "</div>";
@@ -88,7 +88,7 @@ export function createTooltipXy({ id, state, parent }: { id: string, state: XySt
                     const circleIcon = `<svg viewBox="0 0 20 20" height="20" width="10"><circle cx="10" cy="10" r="10" fill="${s.color}" stroke="none"/></svg>`;
 
                     const percentage = s.values[state[id].selectedIndex] / total * 100;
-                    html += `<div style="display:flex; flex-direction:row;align-items:center;gap:3px">${s.type === 'line' ? lineIcon : s.type === 'bar' ? squareIcon : circleIcon} <div>${s.name} : <b>${isNaN(s.values[state[id].selectedIndex]) ? '-' : Number(s.values[state[id].selectedIndex].toFixed(config.tooltip.value.rounding)).toLocaleString()}</b></div>`;
+                    html += `<div style="display:flex; flex-direction:row;align-items:center;gap:3px">${s.type === 'line' ? lineIcon : s.type === 'bar' ? squareIcon : circleIcon} <div>${s.name} : <span style="font-weight:${config.tooltip.value.bold ? 'bold' : 'normal'}">${isNaN(s.values[state[id].selectedIndex]) ? '-' : Number(s.values[state[id].selectedIndex].toFixed(config.tooltip.value.rounding)).toLocaleString()}</span></div>`;
                     if (config.tooltip.percentage.show) {
                         html += `<span style="margin-left:3px;">(${isNaN(percentage) ? '-' : Number((percentage).toFixed(config.tooltip.percentage.rounding)).toLocaleString()}%)</span>`
                     }

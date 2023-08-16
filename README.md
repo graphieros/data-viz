@@ -8,3 +8,8 @@
 A lightweight and user-empowering Javascript chart library.
 
 Currently in early stages.
+
+Available components:
+
+## Charts:
+- [XY](https://data-vision.graphieros.com/docs#xy)

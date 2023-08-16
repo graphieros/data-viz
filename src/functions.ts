@@ -1,5 +1,5 @@
 import { Config, DrawingArea, XyDatasetItem } from "../types";
-import { palette } from "./config";
+import { opacity, palette } from "./config";
 import { SvgAttribute } from "./constants";
 
 /** Shorthand for element.setAttribute
@@ -487,7 +487,7 @@ export function createArrow({ color, defs, id }: { color: string, defs: SVGDefsE
     return `arrow_${id}`;
 }
 
-export function createBarGradientPositive({ defs, color }: { defs: SVGDefsElement, color: string }) {
+export function createBarGradientPositive({ defs, color, opac = 100 }: { defs: SVGDefsElement, color: string, opac: number }) {
     const bg = spawnNS("linearGradient");
     const id = createUid();
     addTo(bg, SvgAttribute.X2, "0%");
@@ -496,22 +496,22 @@ export function createBarGradientPositive({ defs, color }: { defs: SVGDefsElemen
 
     const stop1 = spawnNS("stop") as SVGStopElement;
     addTo(stop1, "offset", "0%");
-    addTo(stop1, "stop-color", color);
+    addTo(stop1, "stop-color", `${color}${opacity[opac]}`);
 
     const stop2 = spawnNS("stop") as SVGStopElement;
     addTo(stop2, "offset", "62%");
-    addTo(stop2, "stop-color", `${shiftHue(color, 0.02)}`);
+    addTo(stop2, "stop-color", `${shiftHue(color, 0.02)}${opacity[opac]}`);
 
     const stop3 = spawnNS("stop") as SVGStopElement;
     addTo(stop3, "offset", "100%");
-    addTo(stop3, "stop-color", `${shiftHue(color, 0.05)}`);
+    addTo(stop3, "stop-color", `${shiftHue(color, 0.05)}${opacity[opac]}`);
 
     [stop1, stop2, stop3].forEach((stop: SVGStopElement) => bg.appendChild(stop));
     defs.appendChild(bg);
     return `url(#${id})`;
 }
 
-export function createBarGradientNegative({ defs, color }: { defs: SVGDefsElement, color: string }) {
+export function createBarGradientNegative({ defs, color, opac = 100 }: { defs: SVGDefsElement, color: string, opac: number }) {
     const bg = spawnNS("linearGradient");
     const id = createUid();
     addTo(bg, SvgAttribute.X2, "0%");
@@ -520,15 +520,15 @@ export function createBarGradientNegative({ defs, color }: { defs: SVGDefsElemen
 
     const stop1 = spawnNS("stop") as SVGStopElement;
     addTo(stop1, "offset", "0%");
-    addTo(stop1, "stop-color", `${shiftHue(color, 0.05)}`);
+    addTo(stop1, "stop-color", `${shiftHue(color, 0.05)}${opacity[opac]}`);
 
     const stop2 = spawnNS("stop") as SVGStopElement;
     addTo(stop2, "offset", "38%");
-    addTo(stop2, "stop-color", `${shiftHue(color, 0.02)}`);
+    addTo(stop2, "stop-color", `${shiftHue(color, 0.02)}${opacity[opac]}`);
 
     const stop3 = spawnNS("stop") as SVGStopElement;
     addTo(stop3, "offset", "100%");
-    addTo(stop3, "stop-color", color);
+    addTo(stop3, "stop-color", `${color}${opacity[opac]}`);
 
     [stop1, stop2, stop3].forEach((stop: SVGStopElement) => bg.appendChild(stop));
     defs.appendChild(bg);

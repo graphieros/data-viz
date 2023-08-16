@@ -90,7 +90,6 @@ export const configLine = {
         opacity: 5,
     },
     linearProgression: {
-        // show is determined on the dataset's serie
         strokeWidth: 1,
         label: {
             show: true,
@@ -104,6 +103,7 @@ export const configLine = {
         strokeWidth: 0,
         useGradient: true,
         borderRadius: 1,
+        fillOpacity: 100,
         dataLabels: {
             show: true,
             color: "#2D353C",
@@ -133,7 +133,22 @@ export const configLine = {
             roundingValue: 0,
         },
         area: {
-            // show is determined on the dataset's serie
+            opacity: 20,
+            useGradient: true,
+        },
+    },
+    plot: {
+        radius: 3,
+        strokeWidth: 1,
+        stroke: "#FFFFFF",
+        dataLabels: {
+            show: true,
+            color: "#2D353C",
+            fontSize: 10,
+            offsetY: 0,
+            roundingValue: 0,
+        },
+        area: {
             opacity: 20,
             useGradient: true,
         },
@@ -206,8 +221,6 @@ export const configLine = {
             fontSize: 14,
             roundingValue: 0,
             roundingPercentage: 0,
-            prefix: "",
-            suffix: ""
         },
         td: {
             backgroundColor: "#FFFFFF",
@@ -215,11 +228,8 @@ export const configLine = {
             fontSize: 14,
             roundingValue: 1,
             roundedPercentage: 0,
-            prefix: "",
-            suffix: ""
         }
     }
-
 }
 
 const config = {

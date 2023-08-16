@@ -17,7 +17,7 @@
         data-vision-set='[
             {"name": "serie 1","type":"bar","showLabels":true, "color":"#6376DD", "showProgression": true,
             "values": [11.566666, -13, -8, -5, -3, -2, -1, -1, 0, 1, 1, 2, 3, 5, 8, 13, 21]},
-            {"name": "serie 2","type":"line","showLabels":true,"showArea": true,
+            {"name": "serie 2","type":"plot","showLabels":true,"showArea": true,
             "values": [0, -1, -1, -2, -3, -5, -8, -13, -21]},
             {"name": "serie 3","type":"line","showLabels":true,"showArea": true,
             "values": [2, 7, 9, -6, 4, 12, 25, 16]}
@@ -83,12 +83,13 @@
               }
             },
             "bars": {
-              "strokeWidth": 0,
+              "strokeWidth": 1,
               "useGradient": true,
               "borderRadius": 1,
+              "fillOpacity": 50,
               "dataLabels": {
                 "show": true,
-                "color": "#2D353C",
+                "color": "#CCCCCC",
                 "fontSize": 10,
                 "roundingValue": 0,
                 "positive": {
@@ -116,6 +117,22 @@
               },
               "area": {
                 "opacity": 20,
+                "useGradient": true
+              }
+            },
+            "plot": {
+              "radius": 3,
+              "strokeWidth": 1,
+              "stroke": "#1A1A1A",
+              "dataLabels": {
+                "show": true,
+                "color": "#CCCCCC",
+                "fontSize": 10,
+                "offsetY": 0,
+                "roundingValue": 0
+              },
+              "area": {
+                "opacity": 30,
                 "useGradient": true
               }
             },
@@ -189,18 +206,14 @@
                 "color": "#2D353C",
                 "fontSize": 14,
                 "roundingValue": 0,
-                "roundingPercentage": 0,
-                "prefix": "",
-                "suffix": ""
+                "roundingPercentage": 0
               },
               "td": {
                 "backgroundColor": "#FFFFFF",
                 "color": "#2D353C",
                 "fontSize": 14,
                 "roundingValue": 1,
-                "roundedPercentage": 0,
-                "prefix": "",
-                "suffix": ""
+                "roundedPercentage": 0
               }
             }
           }'

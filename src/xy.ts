@@ -4,7 +4,7 @@ import { configLine, opacity, palette } from "./config";
 import XY_STATE from "./state_xy";
 import { createTitle } from "./title";
 import { createLegendXy } from "./legend";
-import { createToolkit } from "./toolkit";
+import { createToolkitXy } from "./toolkit";
 import { createTooltipXy } from "./tooltip";
 import { XyDatasetItem, Config, DrawingArea, XyState, XyStateObject, Line, LinearProgression } from "../types";
 
@@ -216,7 +216,7 @@ export function drawXy({ state, id }: { state: XyState, id: string }) {
     createLegendXy({ id, state: XY_STATE });
 
     if (config.toolkit.show) {
-        createToolkit({
+        createToolkitXy({
             id,
             config,
             dataset: mutedDataset,
@@ -491,7 +491,8 @@ export function calcRectY({ plot, zero }: { plot: { x: number, y: number, value:
 
 export function drawSerie({ datasetId, id, svg, serie, config, palette, index, zero, barSlot }: { datasetId: string, id: string, svg: SVGElement, serie: XyDatasetItem, config: Config, palette: string[], index: number, zero: number, barSlot: number }) {
     const color = convertColorToHex(serie.color) || palette[index] || palette[index % palette.length];
-    let gradientId = "";
+    let areaLineGradientId = "";
+    let areaPlotGradientId = "";
     let arrowId = "";
     let rectGradientPositiveId = "";
     let rectGradientNegativeId = "";
@@ -504,7 +505,19 @@ export function drawSerie({ datasetId, id, svg, serie, config, palette, index, z
         const direction = "x";
         const start = `${shiftHue(color, 0.05)}${opacity[config.line.area.opacity]}`;
         const end = `${color}${opacity[config.line.area.opacity]}`;
-        gradientId = createLinearGradient({
+        areaLineGradientId = createLinearGradient({
+            defs,
+            direction,
+            start,
+            end
+        });
+    }
+
+    if (config.plot.area.useGradient) {
+        const direction = "x";
+        const start = `${shiftHue(color, 0.05)}${opacity[config.plot.area.opacity]}`;
+        const end = `${color}${opacity[config.plot.area.opacity]}`;
+        areaPlotGradientId = createLinearGradient({
             defs,
             direction,
             start,
@@ -515,11 +528,13 @@ export function drawSerie({ datasetId, id, svg, serie, config, palette, index, z
     if (config.bars.useGradient) {
         rectGradientPositiveId = createBarGradientPositive({
             defs,
-            color
+            color,
+            opac: config.bars.fillOpacity,
         });
         rectGradientNegativeId = createBarGradientNegative({
             defs,
-            color
+            color,
+            opac: config.bars.fillOpacity,
         });
     }
 
@@ -552,7 +567,24 @@ export function drawSerie({ datasetId, id, svg, serie, config, palette, index, z
             const areaPath = [start.x, start.y, ...path, end.x, end.y].toString();
             const area = spawnNS(SvgElement.PATH);
             addTo(area, SvgAttribute.D, `M${areaPath}Z`);
-            addTo(area, SvgAttribute.FILL, config.line.area.useGradient ? gradientId : `${color}${opacity[config.line.area.opacity]}`);
+            addTo(area, SvgAttribute.FILL, config.line.area.useGradient ? areaLineGradientId : `${color}${opacity[config.line.area.opacity]}`);
+            addTo(area, SvgAttribute.STROKE, "none");
+            thisDataset.areas.push(area);
+            svg.appendChild(area);
+        }
+    }
+    if (serie.type === Chart.PLOT) {
+        if (thisDataset.showArea) {
+            const start = { x: serie.plots[0].x, y: zero };
+            const end = { x: serie.plots.at(-1)?.x, y: zero };
+            const path: any = [];
+            serie.plots.forEach(plot => {
+                path.push(`${plot.x},${plot.y} `)
+            });
+            const areaPath = [start.x, start.y, ...path, end.x, end.y].toString();
+            const area = spawnNS(SvgElement.PATH);
+            addTo(area, SvgAttribute.D, `M${areaPath}Z`);
+            addTo(area, SvgAttribute.FILL, config.plot.area.useGradient ? areaPlotGradientId : `${color}${opacity[config.plot.area.opacity]}`);
             addTo(area, SvgAttribute.STROKE, "none");
             thisDataset.areas.push(area);
             svg.appendChild(area);
@@ -587,7 +619,12 @@ export function drawSerie({ datasetId, id, svg, serie, config, palette, index, z
             addTo(b, SvgAttribute.Y, calcRectY({ plot: bar, zero }));
             addTo(b, SvgAttribute.HEIGHT, calcRectHeight({ plot: bar, zero }));
             addTo(b, SvgAttribute.WIDTH, barSlot * 0.9);
-            addTo(b, SvgAttribute.FILL, config.bars.useGradient ? bar.value > 0 ? rectGradientPositiveId : rectGradientNegativeId : bar.color ? bar.color : '#CCCCCC');
+            addTo(b, SvgAttribute.FILL, config.bars.useGradient ? bar.value > 0 ? rectGradientPositiveId : rectGradientNegativeId : `${serie.color}${opacity[config.bars.fillOpacity]}`);
+            if (config.bars.strokeWidth > 0) {
+                addTo(b, SvgAttribute.STROKE, serie.color);
+                addTo(b, SvgAttribute.STROKE_WIDTH, config.bars.strokeWidth);
+            }
+
             thisDataset.datapoints.push(b);
             svg.appendChild(b);
             if (config.bars.dataLabels.show && (Object.hasOwn(serie, 'showLabels') ? serie.showLabels : true)) {
@@ -595,18 +632,17 @@ export function drawSerie({ datasetId, id, svg, serie, config, palette, index, z
                 addTo(t, SvgAttribute.TEXT_ANCHOR, "middle");
                 addTo(t, SvgAttribute.X, bar.x + barSlot / 2);
                 addTo(t, SvgAttribute.Y, bar.y + (bar.value > 0 ? -config.bars.dataLabels.fontSize / 2 + config.bars.dataLabels.positive.offsetY : config.bars.dataLabels.fontSize + config.bars.dataLabels.negative.offsetY));
-                addTo(t, SvgAttribute.FONT_SIZE, config.line.dataLabels.fontSize);
-                addTo(t, SvgAttribute.FILL, config.line.dataLabels.color);
-                t.innerHTML = Number(bar.value.toFixed(config.line.dataLabels.roundingValue)).toLocaleString();
+                addTo(t, SvgAttribute.FONT_SIZE, config.bars.dataLabels.fontSize);
+                addTo(t, SvgAttribute.FILL, config.bars.dataLabels.color);
+                t.innerHTML = Number(bar.value.toFixed(config.bars.dataLabels.roundingValue)).toLocaleString();
                 thisDataset.dataLabels.push(t);
                 svg.appendChild(t);
             }
         });
     }
 
-    if ([Chart.LINE, Chart.PLOT].includes(serie.type)) {
+    if ([Chart.LINE].includes(serie.type)) {
         serie.plots.forEach(plot => {
-            // plots
             if (config.line.plots.show && isValidUserValue(plot.value)) {
                 const c = spawnNS(SvgElement.CIRCLE);
                 addTo(c, SvgAttribute.CX, plot.x);
@@ -618,7 +654,6 @@ export function drawSerie({ datasetId, id, svg, serie, config, palette, index, z
                 thisDataset.datapoints.push(c)
                 svg.appendChild(c);
             }
-            // data labels
             if (config.line.dataLabels.show && (Object.hasOwn(serie, 'showLabels') ? serie.showLabels : true)) {
                 const t = spawnNS(SvgElement.TEXT);
                 addTo(t, SvgAttribute.TEXT_ANCHOR, "middle");
@@ -627,6 +662,35 @@ export function drawSerie({ datasetId, id, svg, serie, config, palette, index, z
                 addTo(t, SvgAttribute.FONT_SIZE, config.line.dataLabels.fontSize);
                 addTo(t, SvgAttribute.FILL, config.line.dataLabels.color);
                 t.innerHTML = Number(plot.value.toFixed(config.line.dataLabels.roundingValue)).toLocaleString();
+                thisDataset.dataLabels.push(t);
+                svg.appendChild(t);
+            }
+        });
+    }
+
+    if ([Chart.PLOT].includes(serie.type)) {
+        serie.plots.forEach(plot => {
+            // plots
+            if (isValidUserValue(plot.value)) {
+                const c = spawnNS(SvgElement.CIRCLE);
+                addTo(c, SvgAttribute.CX, plot.x);
+                addTo(c, SvgAttribute.CY, plot.y);
+                addTo(c, SvgAttribute.R, config.plot.radius);
+                addTo(c, SvgAttribute.FILL, color);
+                addTo(c, SvgAttribute.STROKE, config.plot.stroke);
+                addTo(c, SvgAttribute.STROKE_WIDTH, config.plot.strokeWidth);
+                thisDataset.datapoints.push(c)
+                svg.appendChild(c);
+            }
+            // data labels
+            if (config.plot.dataLabels.show && (Object.hasOwn(serie, 'showLabels') ? serie.showLabels : true)) {
+                const t = spawnNS(SvgElement.TEXT);
+                addTo(t, SvgAttribute.TEXT_ANCHOR, "middle");
+                addTo(t, SvgAttribute.X, plot.x);
+                addTo(t, SvgAttribute.Y, plot.y - config.plot.dataLabels.fontSize + config.plot.dataLabels.offsetY);
+                addTo(t, SvgAttribute.FONT_SIZE, config.plot.dataLabels.fontSize);
+                addTo(t, SvgAttribute.FILL, config.plot.dataLabels.color);
+                t.innerHTML = Number(plot.value.toFixed(config.plot.dataLabels.roundingValue)).toLocaleString();
                 thisDataset.dataLabels.push(t);
                 svg.appendChild(t);
             }
@@ -642,16 +706,20 @@ export function drawSerie({ datasetId, id, svg, serie, config, palette, index, z
         addTo(progressLine, SvgAttribute.STROKE, serie.color);
         addTo(progressLine, SvgAttribute.STROKE_WIDTH, config.linearProgression.strokeWidth);
         addTo(progressLine, SvgAttribute.STROKE_DASHARRAY, config.linearProgression.strokeWidth * 2)
-        addTo(progressLine, SvgAttribute.MARKER_END, `url(#${arrowId})`)
+        addTo(progressLine, SvgAttribute.MARKER_END, `url(#${arrowId})`);
+        svg.appendChild(progressLine);
 
         const progressLabel = spawnNS(SvgElement.TEXT);
         addTo(progressLabel, SvgAttribute.FILL, color);
-        addTo(progressLabel, SvgAttribute.FONT_SIZE, config.linearProgression.label.fontSize);
+        addTo(progressLabel, SvgAttribute.FONT_SIZE, `${config.linearProgression.label.fontSize}px`);
         addTo(progressLabel, SvgAttribute.X, serie.linearProgression.x2 + config.linearProgression.label.offsetX);
         addTo(progressLabel, SvgAttribute.Y, serie.linearProgression.y2 - 6 + config.linearProgression.label.offsetY);
         addTo(progressLabel, SvgAttribute.TEXT_ANCHOR, "middle");
         progressLabel.innerHTML = `${Number(((serie.linearProgression.trend)).toFixed(config.linearProgression.label.rounding)).toLocaleString()}%`;
-        [progressLine, progressLabel].forEach((el: any) => svg.appendChild(el))
+
+        if (config.linearProgression.show) {
+            svg.appendChild(progressLabel);
+        }
     }
     return svg;
 }
