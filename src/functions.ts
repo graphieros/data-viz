@@ -652,7 +652,7 @@ export function makeDonut({ item, cx, cy, rx, ry }: { item: { base?: number, ser
             [cx, cy],
             [rx, ry],
             [acc, ratio],
-            105.2
+            105.25
         );
 
         ratios.push({
@@ -670,7 +670,7 @@ export function makeDonut({ item, cx, cy, rx, ry }: { item: { base?: number, ser
                 [cx, cy],
                 [rx * 1.45, ry * 1.45],
                 [acc, midRatio],
-                105.2
+                105.25
             ), // center of the arc, to display the marker. rx & ry are larger to be displayed with a slight offset
         });
         acc += ratio;

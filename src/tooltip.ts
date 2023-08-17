@@ -68,13 +68,16 @@ export function createTooltipDonut({ id, state, parent, total }: { id: string, s
     }
 
     const donutTraps = state[id].dataset.donutTraps;
-    donutTraps.forEach((trap: SVGElement, i: number) => {
-        trap.addEventListener("mouseover", () => generateTooltipContent(state[id].dataset[i]));
-        trap.addEventListener("mouseleave", () => {
-            tooltip.style.display = "none";
-            state.isTooltip = false;
-        })
-    })
+    donutTraps.forEach((trap: any, i: number) => {
+        const itsDataset = (state[id].dataset as DonutDatasetItem[]).find(ds => ds.datasetId === trap.datasetId);
+        if (itsDataset) {
+            trap.element.addEventListener("mouseover", () => generateTooltipContent(itsDataset));
+            trap.element.addEventListener("mouseleave", () => {
+                tooltip.style.display = "none";
+                state.isTooltip = false;
+            });
+        }
+    });
 }
 
 export function createTooltipXy({ id, state, parent }: { id: string, state: XyState, parent: HTMLDivElement }) {

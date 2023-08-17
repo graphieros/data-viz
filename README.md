@@ -13,3 +13,4 @@ Available components:
 
 ## Charts:
 - [XY](https://data-vision.graphieros.com/docs#xy)
+- [DONUT](https://data-vision.graphieros.com/docs#donut)

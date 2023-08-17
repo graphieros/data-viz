@@ -378,6 +378,28 @@ export const configDonut = {
             color: "#CCCCCC",
         }
     },
+    table: {
+        show: false,
+        th: {
+            backgroundColor: "#FAFAFA",
+            color: "#2D353C",
+            fontSize: 14,
+            roundingValue: 0,
+            roundingPercentage: 0,
+        },
+        td: {
+            backgroundColor: "#FFFFFF",
+            color: "#2D353C",
+            fontSize: 14,
+            roundingValue: 1,
+            roundedPercentage: 0,
+        },
+        translations: {
+            serie: "Serie",
+            percentage: "%",
+            value: "Value"
+        }
+    }
 }
 
 const config = {

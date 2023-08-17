@@ -225,6 +225,7 @@ export function drawDonut({ state, id }: { state: DonutState, id: string }) {
             [label, percentage].forEach((el: SVGElement) => G.appendChild(el))
 
             if (config.dataLabels.markers.show) {
+                // TODO: apply config (radius and strokewidth)
                 const marker = spawnNS(SvgElement.LINE);
                 addTo(marker, SvgAttribute.STROKE, arc.color);
                 addTo(marker, SvgAttribute.STROKE_WIDTH, 1);
@@ -362,7 +363,7 @@ export function drawDonut({ state, id }: { state: DonutState, id: string }) {
         });
         thisDataset.datapoints.filter((el: any, i: number) => i === index).forEach((el: any) => {
             if (config.arcs.selected.useDropShadow) {
-                el.style.filter = `drop-shadow(0px 3px 12px ${dataset[index].color})`;
+                el.style.filter = `drop-shadow(0px 3px 6px ${mutatedDataset[index].color}${opacity[50]})`;
             }
             el.style.transform = "scale(1.01, 1.01)";
             el.style.transformOrigin = "center";
@@ -392,7 +393,10 @@ export function drawDonut({ state, id }: { state: DonutState, id: string }) {
         path.addEventListener("mouseover", () => hover(i));
         path.addEventListener("mouseout", quit)
         svg.appendChild(path);
-        thisDataset.donutTraps.push(path);
+        thisDataset.donutTraps.push({
+            element: path,
+            datasetId: arc.datasetId
+        });
     });
 
     if (config.tooltip.show) {
@@ -422,8 +426,9 @@ export function drawDonut({ state, id }: { state: DonutState, id: string }) {
     createToolkitDonut({
         id,
         config,
-        dataset,
-        parent
+        dataset: mutatedDataset,
+        parent,
+        total
     });
 }
 

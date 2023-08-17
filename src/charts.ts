@@ -2,10 +2,9 @@ import { CssClass, DataVisionAttribute } from "./constants";
 import { prepareDonut } from "./donut";
 import { prepareXy } from "./xy";
 
-
-
 export function createCharts(attr = "") {
     const targets: HTMLCollection = document.getElementsByClassName(CssClass.DATA_VISION);
+    // const uisStartPattern = /^[a-zA-Z0-9]{4}-/;
 
     if (targets.length) {
 
