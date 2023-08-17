@@ -1,7 +1,7 @@
 import { CssClass, DataVisionAttribute } from "./constants";
-import {
-    prepareXy
-} from "./xy"
+import { prepareDonut } from "./donut";
+import { prepareXy } from "./xy";
+
 
 
 export function createCharts(attr = "") {
@@ -14,6 +14,13 @@ export function createCharts(attr = "") {
                 return dataVisionWrapper.hasAttribute(DataVisionAttribute.XY)
             });
             type_xy.forEach(xy => prepareXy(xy as unknown as HTMLDivElement));
+        }
+
+        if (!attr || attr === DataVisionAttribute.DONUT) {
+            const type_donut = Array.from(targets).filter((dataVisionWrapper) => {
+                return dataVisionWrapper.hasAttribute(DataVisionAttribute.DONUT)
+            });
+            type_donut.forEach(donut => prepareDonut(donut as unknown as HTMLDivElement));
         }
     }
 }

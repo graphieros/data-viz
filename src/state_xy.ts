@@ -1,10 +1,22 @@
-import { XyState } from "../types"
+import { DonutState, XyState } from "../types"
 
-export const XY_STATE = {
+export const XY_STATE: XyState = {
     isTooltip: false,
     clientX: 0,
     clientY: 0,
     openTables: []
 }
 
-export default XY_STATE as unknown as XyState;
+export const DONUT_STATE: DonutState = {
+    isTooltip: false,
+    clientX: 0,
+    clientY: 0,
+    openTables: []
+}
+
+const state = {
+    XY_STATE,
+    DONUT_STATE
+}
+
+export default state;

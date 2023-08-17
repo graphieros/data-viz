@@ -2,10 +2,11 @@ export namespace CssClass {
     export const DATA_VISION = "data-vision";
 }
 export namespace DataVisionAttribute {
+    export const OK = "ok";
     export const CONFIG = "data-vision-config";
     export const DATASET = "data-vision-set";
     export const XY = "data-vision-xy";
-    export const OK = "ok";
+    export const DONUT = "data-vision-donut";
 }
 
 export namespace DomElement {
@@ -81,10 +82,14 @@ export namespace SvgAttribute {
     export const FILL = "fill";
     export const FONT_SIZE = "font-size";
     export const FONT_WEIGHT = "font-weight";
+    export const FX = "fx";
+    export const FY = "fy";
     export const HEIGHT = "height";
     export const MARKER_END = "marker-end";
+    export const OFFSET = "offset";
     export const R = "r";
     export const RX = "rx";
+    export const STOP_COLOR = "stop-color";
     export const STROKE = "stroke";
     export const STROKE_DASHARRAY = "stroke-dasharray";
     export const STROKE_LINECAP = "stroke-linecap";
@@ -110,6 +115,10 @@ export namespace SvgElement {
     export const G = "g";
     export const TEXT = "text";
     export const PATH = "path";
+    export const DEFS = "defs";
+    export const STOP = "stop";
+    export const RADIAL_GRADIENT = "radialGradient";
+    export const LINEAR_GRADIENT = "linearGradient";
 }
 
 export namespace SvgTextPosition {

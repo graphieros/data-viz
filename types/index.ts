@@ -14,8 +14,9 @@ export type State = {
     openTables: string[]
 }
 
-export type XyState = State & {
-}
+export type XyState = State & {}
+
+export type DonutState = State & {}
 
 export type XyStateObject = {
     parent: HTMLDivElement;
@@ -30,6 +31,16 @@ export type XyStateObject = {
     config: Config;
     relativeZero: number;
     absoluteMax: number;
+}
+
+export type DonutStateObject = {
+    parent: HTMLDivElement;
+    svg: SVGElement;
+    config: Config;
+    dataset: DonutDatasetItem[];
+    drawingArea: DrawingArea;
+    total: number;
+    average: number;
 }
 
 export type Config = {
@@ -54,6 +65,14 @@ export type XyDatasetItem = {
     datasetId: string;
 }
 
+export type DonutDatasetItem = {
+    [key: string]: any;
+    name: string;
+    value: number;
+    color: string;
+    datasetId: string;
+}
+
 export type Padding = {
     top: number;
     right: number;
@@ -70,6 +89,8 @@ export type DrawingArea = {
     width: number;
     fullHeight: number;
     fullWidth: number;
+    centerX: number;
+    centerY: number;
 }
 
 export type LinearProgression = {

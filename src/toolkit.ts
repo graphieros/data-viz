@@ -1,7 +1,7 @@
-import { Config, XyDatasetItem } from "../types";
+import { Config, DonutDatasetItem, XyDatasetItem } from "../types";
 import { DomElement } from "./constants";
 import { addTo, grabId, spawn } from "./functions";
-import XY_STATE from "./state_xy";
+import { XY_STATE } from "./state_xy";
 
 export function createCsvContent(rows: string[][]) {
     return `data:text/csv;charset=utf-8,${rows.map(r => r.join(',')).join('\n')}`;
@@ -16,6 +16,24 @@ export function downloadCsv({ csvContent, title = "data-vision" }: { csvContent:
     link.click();
     link.remove();
     window.URL.revokeObjectURL(encodedUri);
+}
+
+export function createToolkitDonut({ id, config, dataset, parent }: { id: string, config: Config, dataset: DonutDatasetItem[], parent: HTMLDivElement }) {
+    const oldToolkit = grabId(`toolkit_${id}`);
+    if (oldToolkit) {
+        oldToolkit.remove();
+    }
+    const oldTable = grabId(`table_${id}`);
+    if (oldTable) {
+        oldTable.remove();
+    }
+
+    let dataRows;
+    let rows = [[]] as any;
+
+    rows = [
+        ['serie', 'percentage', 'value'], // TODO add translations in config
+    ];
 }
 
 export function createToolkitXy({ id, config, dataset, parent }: { id: string, config: Config, dataset: XyDatasetItem[], parent: HTMLDivElement }) {
@@ -187,7 +205,8 @@ export function createToolkitXy({ id, config, dataset, parent }: { id: string, c
 }
 
 const toolkit = {
-    createToolkitXy
+    createToolkitXy,
+    createToolkitDonut
 }
 
 export default toolkit;

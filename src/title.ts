@@ -13,7 +13,7 @@ export function createTitle({ id, state }: { id: string, state: State }) {
         oldTitle.remove();
     }
 
-    if (config.title.useDiv) {
+    if (config.title.useDiv || config.useDiv) {
         const parent = state[id].parent;
         const titleContainer = spawn(DomElement.DIV);
         addTo(titleContainer, "id", `title_${id}`);

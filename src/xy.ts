@@ -1,7 +1,7 @@
 import { Chart, DataVisionAttribute, EventTrigger, SvgAttribute, SvgElement } from "./constants";
 import { spawnNS, addTo, isValidUserValue, createLinearGradient, shiftHue, closestDecimal, createArrow, createBarGradientPositive, createBarGradientNegative, convertColorToHex, getDrawingArea, createUid, parseUserConfig, parseUserDataset, createConfig, createSvg, convertConfigColors, calcLinearProgression } from "./functions";
-import { configLine, opacity, palette } from "./config";
-import XY_STATE from "./state_xy";
+import { configXy, opacity, palette } from "./config";
+import { XY_STATE } from "./state_xy";
 import { createTitle } from "./title";
 import { createLegendXy } from "./legend";
 import { createToolkitXy } from "./toolkit";
@@ -17,7 +17,7 @@ export function prepareXy(parent: HTMLDivElement) {
 
     const config: Config = createConfig({
         userConfig,
-        defaultConfig: configLine
+        defaultConfig: configXy
     });
 
     const svg = createSvg({
@@ -234,7 +234,7 @@ export function handleConfigChange({ mutations, configObserver, dataset, id, sta
                 const newConfig = JSON.parse(newJSONValue);
                 state[id].config = createConfig({
                     userConfig: newConfig,
-                    defaultConfig: configLine
+                    defaultConfig: configXy
                 });
                 svg.remove();
                 parent.innerHTML = "";

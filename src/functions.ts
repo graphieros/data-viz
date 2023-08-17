@@ -220,6 +220,7 @@ export function parseUserDataset(userDataset: string | any[] | undefined, type =
                 lines: [],
                 areas: [],
                 dataLabels: [],
+                donutTraps: []
             }
         });
     } else if (typeof userDataset === 'object') {
@@ -232,7 +233,8 @@ export function parseUserDataset(userDataset: string | any[] | undefined, type =
                 lines: [],
                 areas: [],
                 dataLabels: [],
-                linearProgressions: []
+                linearProgressions: [],
+                donutTraps: []
             }
         });
     } else {
@@ -390,7 +392,9 @@ export function getDrawingArea(config: Config): DrawingArea {
         width: width - left - right,
         height: height - top - bottom,
         fullWidth: width,
-        fullHeight: height
+        fullHeight: height,
+        centerX: left + ((width - left - right) / 2),
+        centerY: top + ((height - top - bottom) / 2)
     }
 }
 
@@ -619,6 +623,112 @@ export function calcPercentageTrend(arr: number[]) {
     return percentageTrend;
 }
 
+export function makeDonut({ item, cx, cy, rx, ry }: { item: { base?: number, series: any }, cx: number, cy: number, rx: number, ry: number }) {
+    let { series } = item;
+    if (!series || item.base === 0)
+        return {
+            ...series,
+            proportion: 0,
+            ratio: 0,
+            path: "",
+            startX: 0,
+            startY: 0,
+            endX: 0,
+            center: {},
+        };
+    const sum = [...series]
+        .map((serie) => serie.value)
+        .reduce((a, b) => a + b, 0);
+
+    const ratios = [];
+    let acc = 0;
+    for (let i = 0; i < series.length; i += 1) {
+        let proportion = series[i].value / sum;
+        const ratio = proportion * (Math.PI * 1.9999); // (Math.PI * 2) fails to display a donut with only one value > 0 as it goes full circle again
+        // midProportion & midRatio are used to find the midpoint of the arc to display markers
+        const midProportion = series[i].value / 2 / sum;
+        const midRatio = midProportion * (Math.PI * 2);
+        const { startX, startY, endX, endY, path } = createArc(
+            [cx, cy],
+            [rx, ry],
+            [acc, ratio],
+            105.2
+        );
+
+        ratios.push({
+            cx,
+            cy,
+            ...series[i],
+            proportion,
+            ratio: ratio,
+            path,
+            startX,
+            startY,
+            endX,
+            endY,
+            center: createArc(
+                [cx, cy],
+                [rx * 1.45, ry * 1.45],
+                [acc, midRatio],
+                105.2
+            ), // center of the arc, to display the marker. rx & ry are larger to be displayed with a slight offset
+        });
+        acc += ratio;
+    }
+    return ratios;
+}
+
+export function addVector([a1, a2]: [number, number], [b1, b2]: [number, number]) {
+    return [a1 + b1, a2 + b2];
+}
+
+export function matrixTimes([[a, b], [c, d]]: [[number, number], [number, number]], [x, y]: [number, number]) {
+    return [a * x + b * y, c * x + d * y];
+}
+
+export function rotateMatrix(x: number) {
+    return [
+        [Math.cos(x), -Math.sin(x)],
+        [Math.sin(x), Math.cos(x)],
+    ];
+}
+
+export function createArc([cx, cy]: [number, number], [rx, ry]: [number, number], [position, ratio]: [number, number], phi: number) {
+    ratio = ratio % (2 * Math.PI);
+    const rotMatrix = rotateMatrix(phi);
+    const [sX, sY] = addVector(
+        matrixTimes(rotMatrix, [
+            rx * Math.cos(position),
+            ry * Math.sin(position),
+        ]),
+        [cx, cy]
+    );
+    const [eX, eY] = addVector(
+        matrixTimes(rotMatrix, [
+            rx * Math.cos(position + ratio),
+            ry * Math.sin(position + ratio),
+        ]),
+        [cx, cy]
+    );
+    const fA = ratio > Math.PI ? 1 : 0;
+    const fS = ratio > 0 ? 1 : 0;
+    return {
+        startX: sX,
+        startY: sY,
+        endX: eX,
+        endY: eY,
+        path: `M${sX} ${sY} A ${[
+            rx,
+            ry,
+            (phi / (2 * Math.PI)) * 360,
+            fA,
+            fS,
+            eX,
+            eY,
+        ].join(" ")}`,
+    };
+}
+
 const utils = {
     addTo,
     applyEllipsis,
@@ -627,8 +737,8 @@ const utils = {
     closestDecimal,
     convertColorToHex,
     createArrow,
-    createBarGradientPositive,
     createBarGradientNegative,
+    createBarGradientPositive,
     createConfig,
     createLinearGradient,
     createSvg,
@@ -640,6 +750,7 @@ const utils = {
     grabId,
     isValidUserValue,
     logError,
+    makeDonut,
     parseUserConfig,
     parseUserDataset,
     reorderArrayByIndex,

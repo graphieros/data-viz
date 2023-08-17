@@ -1,6 +1,7 @@
 import { createCharts } from "./charts";
 import { W } from "../types";
 import "@/css/index.css";
+import { DataVisionAttribute } from "./constants";
 
 if (typeof window !== undefined) {
 
@@ -11,12 +12,17 @@ if (typeof window !== undefined) {
         createCharts();
 
         function initXy() {
-            createCharts("data-vision-xy")
+            createCharts(DataVisionAttribute.XY)
+        }
+
+        function initDonuts() {
+            createCharts(DataVisionAttribute.DONUT)
         }
 
         // Public
         return {
             initXy,
+            initDonuts,
             createCharts
         }
     }(
@@ -24,6 +30,5 @@ if (typeof window !== undefined) {
     ));
 
     (window as unknown as W).DataVision = DataVision;
-    // DataVision.createCharts();
 }
 

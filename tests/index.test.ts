@@ -1,7 +1,7 @@
 import { afterAll, assert, beforeAll, describe, expect, it, test } from "vitest";
 import { CssClass, DataVisionAttribute } from "../src/constants";
 import * as functions from "../src/functions";
-import { configLine } from "../src/config";
+import { configXy } from "../src/config";
 import { createCharts } from "../src/charts";
 
 describe('createCharts', () => {
@@ -37,7 +37,7 @@ describe('createCharts', () => {
     const mockXyElement = document.createElement("DIV");
     mockXyElement.setAttribute(DataVisionAttribute.XY, 'true');
     mockXyElement.classList.add(CssClass.DATA_VISION);
-    mockXyElement.setAttribute(DataVisionAttribute.CONFIG, JSON.stringify(configLine));
+    mockXyElement.setAttribute(DataVisionAttribute.CONFIG, JSON.stringify(configXy));
     mockXyElement.setAttribute(DataVisionAttribute.DATASET, JSON.stringify(xyDataset));
 
 
