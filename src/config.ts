@@ -344,10 +344,6 @@ export const configDonut = {
         value: {
             show: true,
             rounding: 0,
-        },
-        toAverage: {
-            show: true,
-            rounding: 1,
         }
     },
     legend: {
@@ -355,9 +351,7 @@ export const configDonut = {
         fontSize: 14,
         color: "#2D353C",
         backgroundColor: "#FFFFFF",
-        offsetY: 0,
         bold: true,
-        roundingValue: 0,
         paddingY: 12,
     },
     title: {
@@ -384,15 +378,14 @@ export const configDonut = {
             backgroundColor: "#FAFAFA",
             color: "#2D353C",
             fontSize: 14,
-            roundingValue: 0,
-            roundingPercentage: 0,
+            roundingValue: 0
         },
         td: {
             backgroundColor: "#FFFFFF",
             color: "#2D353C",
             fontSize: 14,
-            roundingValue: 1,
-            roundedPercentage: 0,
+            roundingValue: 0,
+            roundingPercentage: 1,
         },
         translations: {
             serie: "Serie",

@@ -208,6 +208,7 @@ export function drawDonut({ state, id }: { state: DonutState, id: string }) {
             addTo(label, SvgAttribute.Y, labelPosition.y);
             addTo(label, SvgAttribute.FILL, config.dataLabels.name.color);
             addTo(label, SvgAttribute.FONT_SIZE, config.dataLabels.name.fontSize);
+            addTo(label, SvgAttribute.FONT_WEIGHT, config.dataLabels.name.bold ? 'bold' : 'normal');
             addTo(label, SvgAttribute.TEXT_ANCHOR, labelPosition.textAnchor);
             const name = config.dataLabels.name.useEllipsis ? arc.name.slice(0, 16) + "..." : arc.name;
             label.innerHTML = name;
@@ -228,7 +229,7 @@ export function drawDonut({ state, id }: { state: DonutState, id: string }) {
                 // TODO: apply config (radius and strokewidth)
                 const marker = spawnNS(SvgElement.LINE);
                 addTo(marker, SvgAttribute.STROKE, arc.color);
-                addTo(marker, SvgAttribute.STROKE_WIDTH, 1);
+                addTo(marker, SvgAttribute.STROKE_WIDTH, config.dataLabels.markers.strokeWidth);
                 addTo(marker, SvgAttribute.X1, arc.center.endX);
                 addTo(marker, SvgAttribute.Y1, arc.center.endY);
                 addTo(marker, SvgAttribute.X2, createMarker({ drawingArea, element: arc, offset: drawingArea.width / 5 }).x2);
@@ -236,7 +237,7 @@ export function drawDonut({ state, id }: { state: DonutState, id: string }) {
 
                 const markerEnd = spawnNS(SvgElement.CIRCLE);
                 addTo(markerEnd, SvgAttribute.FILL, arc.color);
-                addTo(markerEnd, SvgAttribute.R, "3");
+                addTo(markerEnd, SvgAttribute.R, config.dataLabels.markers.radius);
                 addTo(markerEnd, SvgAttribute.CX, arc.center.endX);
                 addTo(markerEnd, SvgAttribute.CY, arc.center.endY);
                 addTo(markerEnd, SvgAttribute.STROKE, "none");
@@ -423,13 +424,15 @@ export function drawDonut({ state, id }: { state: DonutState, id: string }) {
         });
     }
 
-    createToolkitDonut({
-        id,
-        config,
-        dataset: mutatedDataset,
-        parent,
-        total
-    });
+    if (config.toolkit.show) {
+        createToolkitDonut({
+            id,
+            config,
+            dataset: mutatedDataset,
+            parent,
+            total
+        });
+    }
 }
 
 

@@ -135,7 +135,7 @@ export function createToolkitDonut({ id, config, dataset, parent, total }: { id:
 
     TrTd.forEach((t: any) => {
         const tr = spawn("TR");
-        t.forEach((r: any) => {
+        t.forEach((r: any, i: number) => {
             const td = spawn("TD");
             td.style.border = "1px solid #e1e5e8";
             td.style.textAlign = "right";
@@ -144,7 +144,7 @@ export function createToolkitDonut({ id, config, dataset, parent, total }: { id:
             td.style.fontSize = `${config.table.td.fontSize}px`;
             td.style.background = config.table.td.backgroundColor;
             td.style.color = config.table.td.color;
-            td.innerHTML = isNaN(r) || r === '' ? r : Number(Number(r).toFixed(config.table.td.roundingValue)).toLocaleString();
+            td.innerHTML = isNaN(r) || r === '' ? r : Number(Number(r).toFixed(i === 1 ? config.table.td.roundingPercentage : config.table.td.roundingValue)).toLocaleString();
             tr.appendChild(td);
         });
         tbody.appendChild(tr);

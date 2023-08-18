@@ -5,7 +5,7 @@
 
 [Interactive documentation](https://data-vision.graphieros.com/)
 
-A lightweight and user-empowering Javascript chart library.
+A lightweight and user-empowering Javascript chart library that can be used in any framework.
 
 Currently in early stages.
 
