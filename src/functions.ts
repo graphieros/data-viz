@@ -1,4 +1,4 @@
-import { Config, DrawingArea, XyDatasetItem } from "../types";
+import { Config, DrawingArea } from "../types";
 import { opacity, palette } from "./config";
 import { SvgAttribute } from "./constants";
 
@@ -220,7 +220,9 @@ export function parseUserDataset(userDataset: string | any[] | undefined, type =
                 lines: [],
                 areas: [],
                 dataLabels: [],
-                donutTraps: []
+                donutTraps: [],
+                verticalTraps: [],
+                verticalLayers: []
             }
         });
     } else if (typeof userDataset === 'object') {
@@ -234,7 +236,9 @@ export function parseUserDataset(userDataset: string | any[] | undefined, type =
                 areas: [],
                 dataLabels: [],
                 linearProgressions: [],
-                donutTraps: []
+                donutTraps: [],
+                verticalTraps: [],
+                verticalLayers: []
             }
         });
     } else {
@@ -678,11 +682,11 @@ export function makeDonut({ item, cx, cy, rx, ry }: { item: { base?: number, ser
     return ratios;
 }
 
-export function addVector([a1, a2]: [number, number], [b1, b2]: [number, number]) {
+export function addVector([a1, a2]: any, [b1, b2]: [number, number]) {
     return [a1 + b1, a2 + b2];
 }
 
-export function matrixTimes([[a, b], [c, d]]: [[number, number], [number, number]], [x, y]: [number, number]) {
+export function matrixTimes([[a, b], [c, d]]: any, [x, y]: [number, number]) {
     return [a * x + b * y, c * x + d * y];
 }
 
@@ -693,7 +697,7 @@ export function rotateMatrix(x: number) {
     ];
 }
 
-export function createArc([cx, cy]: [number, number], [rx, ry]: [number, number], [position, ratio]: [number, number], phi: number) {
+export function createArc([cx, cy]: any, [rx, ry]: any, [position, ratio]: [number, number], phi: number) {
     ratio = ratio % (2 * Math.PI);
     const rotMatrix = rotateMatrix(phi);
     const [sX, sY] = addVector(

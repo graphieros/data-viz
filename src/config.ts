@@ -395,11 +395,164 @@ export const configDonut = {
     }
 }
 
+export const configVerticalBar = {
+    backgroundColor: "#FFFFFF",
+    color: "#2D353C",
+    fontFamily: "inherit",
+    width: 500,
+    height: 1,
+    useDiv: true,
+    padding: {
+        top: 24,
+        right: 96,
+        bottom: 24,
+        left: 108
+    },
+    toolkit: {
+        show: true,
+        buttons: {
+            backgroundColor: "#FFFFFF",
+            color: "#2D353C",
+            size: 32,
+            outline: "1px solid #e1e5e8",
+        },
+        csvExport: {
+            show: true,
+        },
+    },
+    bars: {
+        height: 28,
+        gap: 3,
+        borderRadius: 2,
+        gradientIntensity: 40,
+        fillOpacity: 100,
+        strokeWidth: 0,
+        gradient: {
+            show: true,
+            intensity: 40,
+            baseColor: "#FFFFFF",
+            reverse: false,
+        }
+    },
+    indicator: {
+        color: "#2D353C",
+        opacity: 5,
+    },
+    grid: {
+        show: true,
+        stroke: "#e1e5e8",
+        strokeWidth: 1,
+        stopAtBase: true,
+        dashed: true,
+    },
+    dataLabels: {
+        names: {
+            fontSize: 10,
+            color: "#2D353C",
+            bold: true,
+            useSerieColor: true,
+        },
+        values: {
+            fontSize: 10,
+            color: "#2D353C",
+            bold: true,
+            offsetX: 0,
+            useSerieColor: true,
+            quantity: {
+                show: true,
+                rounding: 0
+            },
+            percentage: {
+                show: true,
+                rounding: 1,
+            }
+        }
+    },
+    tooltip: {
+        show: true,
+        backgroundColor: "#FFFFFF",
+        color: "#2D353C",
+        padding: 12,
+        fontSize: 14,
+        fontFamily: "inherit",
+        border: "1px solid #e1e5e8",
+        borderRadius: 4,
+        boxShadow: "0 6px 12px -3px #2D353C33",
+        offsetY: 12,
+        maxWidth: 300,
+        percentage: {
+            show: true,
+            rounding: 1,
+            bold: false,
+            translations: {
+                toTotal: "of Total",
+                of: "of"
+            }
+        },
+        value: {
+            bold: true,
+            show: true,
+            rounding: 0,
+        },
+    },
+    legend: {
+        show: true,
+        fontSize: 14,
+        color: "#2D353C",
+        backgroundColor: "#FFFFFF",
+        bold: true,
+        paddingY: 12,
+    },
+    title: {
+        show: true,
+        text: "",
+        fontSize: 20,
+        bold: true,
+        color: "#2D353C",
+        backgroundColor: "#FFFFFF",
+        textAlign: "center",
+        marginTop: 0,
+        offsetY: 0,
+        offsetX: 0,
+        subtitle: {
+            text: "",
+            fontSize: 16,
+            bold: false,
+            color: "#CCCCCC",
+        }
+    },
+    table: {
+        show: false,
+        th: {
+            backgroundColor: "#FAFAFA",
+            color: "#2D353C",
+            fontSize: 14,
+            roundingValue: 0,
+            roundingAverage: 1,
+        },
+        td: {
+            backgroundColor: "#FFFFFF",
+            color: "#2D353C",
+            fontSize: 14,
+            roundingValue: 0,
+            roundingPercentage: 1,
+        },
+        translations: {
+            serie: "Serie",
+            value: "Value",
+            toTotal: "%/Total",
+            child: "Child",
+            toSerie: "%/Serie"
+        }
+    }
+}
+
 const config = {
     palette,
     opacity,
     configXy,
-    configDonut
+    configDonut,
+    configVerticalBar
 }
 
 export default config;

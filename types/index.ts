@@ -18,6 +18,8 @@ export type XyState = State & {}
 
 export type DonutState = State & {}
 
+export type VerticalState = State & {}
+
 export type XyStateObject = {
     parent: HTMLDivElement;
     svg: SVGElement;
@@ -38,6 +40,16 @@ export type DonutStateObject = {
     svg: SVGElement;
     config: Config;
     dataset: DonutDatasetItem[];
+    drawingArea: DrawingArea;
+    total: number;
+    average: number;
+}
+
+export type VerticalStateObject = {
+    parent: HTMLDivElement;
+    svg: SVGElement;
+    config: Config;
+    dataset: VerticalDatasetItem[];
     drawingArea: DrawingArea;
     total: number;
     average: number;
@@ -71,6 +83,14 @@ export type DonutDatasetItem = {
     value: number;
     color: string;
     datasetId: string;
+}
+
+export type VerticalDatasetItem = {
+    [key: string]: any;
+    name: string;
+    value: number;
+    color: string;
+    children?: VerticalDatasetItem[];
 }
 
 export type Padding = {

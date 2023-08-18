@@ -1,6 +1,91 @@
-import { Config, DonutDatasetItem, DonutState, XyDatasetItem, XyState } from "../types";
+import { Config, DonutDatasetItem, DonutState, VerticalDatasetItem, VerticalState, XyDatasetItem, XyState } from "../types";
 import { DomElement } from "./constants";
 import { addTo, spawn } from "./functions";
+
+export function createTooltipVerticalBar({ id, state, parent }: { id: string, state: VerticalState, parent: HTMLDivElement }) {
+    const oldTooltip = document.getElementById(`tooltip_${id}`);
+    if (oldTooltip) {
+        oldTooltip.remove();
+    }
+
+    const config: Config = state[id].config;
+    const svg: SVGElement = state[id].svg;
+    const tooltip = spawn(DomElement.DIV) as unknown as HTMLDivElement;
+    tooltip.classList.add("data-vision-tooltip");
+    tooltip.style.position = "fixed";
+    tooltip.style.background = config.tooltip.backgroundColor;
+    tooltip.style.padding = `${config.tooltip.padding}px`;
+    tooltip.style.border = config.tooltip.border;
+    tooltip.style.borderRadius = `${config.tooltip.borderRadius}px`;
+    tooltip.style.boxShadow = config.tooltip.boxShadow;
+    tooltip.style.fontSize = `${config.tooltip.fontSize}px`;
+    tooltip.style.fontFamily = config.fontFamily;
+    tooltip.style.color = config.tooltip.color;
+    tooltip.style.zIndex = "100";
+    tooltip.style.width = "fit-content !important";
+    tooltip.style.maxWidth = `${config.tooltip.maxWidth}px`;
+    tooltip.style.transition = config.tooltip.transition;
+    tooltip.style.fontVariantNumeric = "tabular-nums";
+    addTo(tooltip, "id", `tooltip_${id}`);
+
+    parent.appendChild(tooltip);
+    tooltip.style.display = "none";
+
+    svg.addEventListener("mousemove", (e) => {
+        if (state.isTooltip) {
+            tooltip.style.display = "initial";
+            const rect = tooltip.getBoundingClientRect();
+            state.clientX = e.clientX - rect.width / 2;
+            state.clientY = e.clientY + 24 + config.tooltip.offsetY;
+            tooltip.style.left = `${state.clientX + rect.width > window.innerWidth ? state.clientX - rect.width / 2 : state.clientX - rect.width < 0 ? state.clientX + rect.width / 2 : state.clientX}px`;
+            tooltip.style.top = `${state.clientY + rect.height > window.innerHeight ? state.clientY - (rect.height) - 64 : state.clientY}px`;
+        }
+    });
+
+    function generateTooltipContent(datasetItem: VerticalDatasetItem) {
+        state.isTooltip = true;
+        tooltip.style.display = "flex";
+        let html = "";
+
+        html += `<div style="display:flex;flex-direction:row;gap:6px;align-items:center;">`;
+
+        html += `<svg viewBox="0 0 16 16" height="16" width="16" style="unset:all"><rect fill="${datasetItem.color}" x="0" y="0" width="16" height="16" rx="${config.bars.borderRadius}"/> </svg>`;
+
+        html += `<div style="display: flex; align-items:flex-start;flex-direction:column">`;
+        if (datasetItem.isChild) {
+            html += `<div><b>${datasetItem.parentName}</b></div>`;
+        }
+        html += `<div><b>${datasetItem.name}</b></div>`;
+        html += "</div></div>";
+
+        html += `<div style="width:100%; padding-top:6px;margin-top:6px;border-top:1px solid #e1e5e8">`
+        if (config.tooltip.value.show) {
+            html += `<div style="font-weight:${config.tooltip.value.bold ? 'bold' : 'normal'}">${isNaN(datasetItem.value) ? '-' : Number((datasetItem.value.toFixed(config.tooltip.value.rounding))).toLocaleString()}</div>`
+        }
+        if (config.tooltip.percentage.show) {
+            html += `<div style="font-weight:${config.tooltip.percentage.bold ? 'bold' : 'normal'}">${isNaN(datasetItem.proportion) ? '-' : Number((datasetItem.proportion * 100).toFixed(config.tooltip.percentage.rounding)).toLocaleString()}% ${config.tooltip.percentage.translations.toTotal} </div>`;
+            if (datasetItem.isChild) {
+                html += `<div style="font-weight:${config.tooltip.percentage.bold ? 'bold' : 'normal'}">${isNaN(datasetItem.proportionToParent) ? '-' : Number((datasetItem.proportionToParent * 100).toFixed(config.tooltip.percentage.rounding)).toLocaleString()}% ${config.tooltip.percentage.translations.of} ${datasetItem.parentName} </div>`;
+            }
+        }
+        html += `</div>`;
+        tooltip.innerHTML = html;
+    }
+
+    const verticalTraps = state[id].dataset.verticalTraps;
+
+    verticalTraps.forEach((trap: any) => {
+        const itsDataset = trap.data
+        if (itsDataset) {
+            trap.element.addEventListener("mouseover", () => generateTooltipContent(itsDataset));
+            trap.element.addEventListener("mouseleave", () => {
+                tooltip.style.display = "none";
+                state.isTooltip = false;
+            });
+        }
+    });
+
+}
 
 export function createTooltipDonut({ id, state, parent, total }: { id: string, state: DonutState, parent: HTMLDivElement, total: number }) {
     const oldTooltip = document.getElementById(`tooltip_${id}`);
@@ -28,15 +113,6 @@ export function createTooltipDonut({ id, state, parent, total }: { id: string, s
     tooltip.style.fontVariantNumeric = "tabular-nums";
     addTo(tooltip, "id", `tooltip_${id}`);
 
-    const series = (state[id].dataset as DonutDatasetItem[])
-        .filter(ds => !state[id].segregatedDatasets.includes(ds.datasetId))
-        .map(ds => {
-            return {
-                ...ds,
-                name: ds.name,
-                color: ds.color
-            }
-        });
     parent.appendChild(tooltip);
     tooltip.style.display = "none";
 
@@ -68,7 +144,7 @@ export function createTooltipDonut({ id, state, parent, total }: { id: string, s
     }
 
     const donutTraps = state[id].dataset.donutTraps;
-    donutTraps.forEach((trap: any, i: number) => {
+    donutTraps.forEach((trap: any) => {
         const itsDataset = (state[id].dataset as DonutDatasetItem[]).find(ds => ds.datasetId === trap.datasetId);
         if (itsDataset) {
             trap.element.addEventListener("mouseover", () => generateTooltipContent(itsDataset));
@@ -190,7 +266,8 @@ export function createTooltipXy({ id, state, parent }: { id: string, state: XySt
 
 const tooltip = {
     createTooltipXy,
-    createTooltipDonut
+    createTooltipDonut,
+    createTooltipVerticalBar
 }
 
 export default tooltip;

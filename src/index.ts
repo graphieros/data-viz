@@ -19,11 +19,16 @@ if (typeof window !== undefined) {
             createCharts(DataVisionAttribute.DONUT)
         }
 
+        function initVerticalBars() {
+            createCharts(DataVisionAttribute.VERTICAL_BAR);
+        }
+
         // Public
         return {
+            createCharts,
             initXy,
             initDonuts,
-            createCharts
+            initVerticalBars
         }
     }(
         createCharts,

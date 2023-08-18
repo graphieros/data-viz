@@ -356,13 +356,13 @@ export function drawDonut({ state, id }: { state: DonutState, id: string }) {
     }
 
     function hover(index: number) {
-        thisDataset.datapoints.filter((el: any, i: number) => i !== index).forEach((el: any) => {
+        thisDataset.datapoints.filter((_: any, i: number) => i !== index).forEach((el: any) => {
             el.style.filter = "blur(3px) opacity(50%) grayscale(100%)";
         });
-        thisDataset.dataLabels.filter((el: any, i: number) => i !== index).forEach((el: any) => {
+        thisDataset.dataLabels.filter((_: any, i: number) => i !== index).forEach((el: any) => {
             el.style.filter = "blur(3px) opacity(50%) grayscale(100%)";
         });
-        thisDataset.datapoints.filter((el: any, i: number) => i === index).forEach((el: any) => {
+        thisDataset.datapoints.filter((_: any, i: number) => i === index).forEach((el: any) => {
             if (config.arcs.selected.useDropShadow) {
                 el.style.filter = `drop-shadow(0px 3px 6px ${mutatedDataset[index].color}${opacity[50]})`;
             }
@@ -412,8 +412,7 @@ export function drawDonut({ state, id }: { state: DonutState, id: string }) {
     if (config.legend.show) {
         createLegendDonut({
             id,
-            state,
-            total
+            state
         });
     }
 
