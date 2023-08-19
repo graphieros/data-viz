@@ -23,12 +23,17 @@ if (typeof window !== undefined) {
             createCharts(DataVisionAttribute.VERTICAL_BAR);
         }
 
+        function initGauges() {
+            createCharts(DataVisionAttribute.GAUGE);
+        }
+
         // Public
         return {
             createCharts,
             initXy,
             initDonuts,
-            initVerticalBars
+            initVerticalBars,
+            initGauges
         }
     }(
         createCharts,

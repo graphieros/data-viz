@@ -15,3 +15,4 @@ Available components:
 - [XY](https://data-vision.graphieros.com/docs#xy)
 - [Donut](https://data-vision.graphieros.com/docs#donut)
 - [Vertical Bar](https://data-vision.graphieros.com/docs#vertical-bar)
+- [Gauge](https://data-vision.graphieros.com/docs#gauge)

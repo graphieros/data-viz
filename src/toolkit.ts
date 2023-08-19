@@ -1,6 +1,6 @@
-import { Config, DonutDatasetItem, VerticalDatasetItem, XyDatasetItem } from "../types";
+import { Config, DonutDatasetItem, GaugeDataset, VerticalDatasetItem, XyDatasetItem } from "../types";
 import { DomElement, Icon } from "./constants";
-import { addTo, grabId, spawn } from "./functions";
+import { addTo, grabId, isValidUserValue, spawn } from "./functions";
 import { VERTICAL_STATE, XY_STATE } from "./state_xy";
 
 export function createCsvContent(rows: string[][]) {
@@ -89,6 +89,134 @@ export function createTableSkeleton({ config, id }: { config: Config, id: string
     return { tableWrapper, table, thead, tbody };
 }
 
+export function createToolkitGauge({
+    id,
+    config,
+    dataset,
+    parent,
+    total
+}: {
+    id: string,
+    config: Config,
+    dataset: GaugeDataset,
+    parent: HTMLDivElement,
+    total: number
+}) {
+    const oldToolkit = grabId(`toolkit_${id}`);
+    if (oldToolkit) {
+        oldToolkit.remove();
+    }
+    const oldTable = grabId(`table_${id}`);
+    if (oldTable) {
+        oldTable.remove();
+    }
+
+    let rows = [[]] as any;
+    const dataRows = dataset.series.map(s => {
+        return [
+            `${config.table.translations.from} ${s.from} ${config.table.translations.to} ${s.to}`,
+            isValidUserValue(s.quantity) ? s.quantity.toFixed(config.table.th.roundingValue) : '-',
+            isValidUserValue(s.quantity / total) ? (s.quantity / total * 100).toFixed(config.table.th.roundedPercentage) : "-"
+        ]
+    });
+
+    rows = [
+        [`${config.title.text || "-"} ${config.title.subtitle.text ? `: ${config.title.subtitle.text}` : ''}`, "", ""],
+        [`${config.table.translations.rating} : ${isValidUserValue(dataset.value) ? dataset.value.toFixed(config.table.th.roundingRating) : '-'}`, "", ""],
+        ["", config.table.translations.value, config.table.translations.toTotal],
+        ["Σ", total, '100'],
+        ...dataRows
+    ];
+
+    const csvContent = createCsvContent(rows);
+    const toolkitWrapper = createToolkitWrapper({
+        config,
+        id
+    });
+
+    createCsvButton({
+        config,
+        wrapper: toolkitWrapper,
+        csvContent
+    });
+
+    const tableButton = createTableButton({
+        config,
+        wrapper: toolkitWrapper,
+        callback: toggleTable,
+        initIcon: Icon.TABLE_CLOSED
+    });
+
+    const { tableWrapper, table, thead, tbody } = createTableSkeleton({ config, id });
+
+    const TrTh = rows.slice(0, 4);
+    TrTh.forEach((t: any) => {
+        const tr = spawn("TR");
+        t.forEach((h: any) => {
+            const th = spawn("TH");
+            th.innerHTML = isNaN(h) || h === '' ? h : Number(Number(h).toFixed(config.table.th.roundingValue)).toLocaleString();
+            th.style.textAlign = "right";
+            th.style.paddingRight = "6px";
+            th.style.background = config.table.th.backgroundColor;
+            th.style.color = config.table.th.color;
+            th.style.fontSize = `${config.table.th.fontSize}px`;
+            th.style.outline = "1px solid #e1e5e8";
+            tr.appendChild(th);
+        });
+        thead.appendChild(tr);
+    });
+
+    const TrTd = rows.slice(4).map((row: any) => {
+        return row;
+    });
+
+    TrTd.forEach((t: any) => {
+        const tr = spawn("TR");
+        t.forEach((r: any, i: number) => {
+            const td = spawn("TD");
+            td.style.border = "1px solid #e1e5e8";
+            td.style.textAlign = "right";
+            td.style.paddingRight = "6px";
+            td.style.fontVariantNumeric = "tabluar-nums";
+            td.style.fontSize = `${config.table.td.fontSize}px`;
+            td.style.background = config.table.td.backgroundColor;
+            td.style.color = config.table.td.color;
+            td.innerHTML = isNaN(r) || r === '' ? r : Number(Number(r).toFixed(i === 1 ? config.table.td.roundingPercentage : config.table.td.roundingValue)).toLocaleString();
+            tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+    });
+
+    [thead, tbody].forEach(el => table.appendChild(el));
+    tableWrapper.appendChild(table);
+
+    if (config.table.show || VERTICAL_STATE.openTables.includes(id)) {
+        tableWrapper.style.display = "flex";
+        tableButton.innerHTML = Icon.TABLE_CLOSED;
+        VERTICAL_STATE.openTables.push(id);
+    } else {
+        tableWrapper.style.display = "none";
+        tableButton.innerHTML = Icon.TABLE_OPEN;
+        VERTICAL_STATE.openTables = VERTICAL_STATE.openTables.filter(el => el !== id)
+    }
+
+    parent.appendChild(tableWrapper);
+
+    function toggleTable() {
+        if (tableWrapper.style.display === "none") {
+            tableWrapper.style.display = "flex";
+            tableButton.innerHTML = Icon.TABLE_CLOSED;
+            VERTICAL_STATE.openTables.push(id);
+        } else {
+            tableWrapper.style.display = "none";
+            tableButton.innerHTML = Icon.TABLE_OPEN;
+            VERTICAL_STATE.openTables = VERTICAL_STATE.openTables.filter(el => el !== id)
+        }
+    }
+
+    parent.prepend(toolkitWrapper);
+}
+
 export function createToolkitVerticalBar({ id, config, dataset, parent, total, average }: { id: string, config: Config, dataset: VerticalDatasetItem[], parent: HTMLDivElement, total: number, average: number }) {
     const oldToolkit = grabId(`toolkit_${id}`);
     if (oldToolkit) {
@@ -114,6 +242,7 @@ export function createToolkitVerticalBar({ id, config, dataset, parent, total, a
     });
 
     rows = [
+        [`${config.title.text || "-"} ${config.title.subtitle.text ? `: ${config.title.subtitle.text}` : ''}`, "", "", "", "", "", ""],
         [config.table.translations.serie, config.table.translations.value, config.table.translations.toTotal, config.table.translations.child, config.table.translations.value, config.table.translations.toSerie, config.table.translations.toTotal],
         ["", `Σ ${isNaN(total) ? '-' : total.toFixed(config.table.th.roundingValue)}`, '100', "", "", "", ""],
         ["", `μ ${isNaN(average) ? '-' : average.toFixed(config.table.th.roundingAverage)}`, "", "", "", "", ""],
@@ -141,7 +270,7 @@ export function createToolkitVerticalBar({ id, config, dataset, parent, total, a
 
     const { tableWrapper, table, thead, tbody } = createTableSkeleton({ config, id });
 
-    const TrTh = rows.slice(0, 3);
+    const TrTh = rows.slice(0, 4);
     TrTh.forEach((t: any) => {
         const tr = spawn("TR");
         t.forEach((h: any) => {
@@ -158,7 +287,7 @@ export function createToolkitVerticalBar({ id, config, dataset, parent, total, a
         thead.appendChild(tr);
     });
 
-    const TrTd = rows.slice(3).map((row: any) => {
+    const TrTd = rows.slice(4).map((row: any) => {
         return row;
     });
 
@@ -230,6 +359,7 @@ export function createToolkitDonut({ id, config, dataset, parent, total }: { id:
     })
 
     rows = [
+        [`${config.title.text || "-"} ${config.title.subtitle.text ? `: ${config.title.subtitle.text}` : ''}`, "", ""],
         [config.table.translations.serie, config.table.translations.percentage, config.table.translations.value],
         ['Σ', 100, total],
         ...dataRows
@@ -257,7 +387,7 @@ export function createToolkitDonut({ id, config, dataset, parent, total }: { id:
 
     const { tableWrapper, table, thead, tbody } = createTableSkeleton({ config, id });
 
-    const TrTh = rows.slice(0, 2);
+    const TrTh = rows.slice(0, 3);
     TrTh.forEach((t: any) => {
         const tr = spawn("TR");
         t.forEach((h: any) => {
@@ -274,7 +404,7 @@ export function createToolkitDonut({ id, config, dataset, parent, total }: { id:
         thead.appendChild(tr);
     });
 
-    const TrTd = rows.slice(2).map((row: any) => {
+    const TrTd = rows.slice(3).map((row: any) => {
         return row;
     });
 
@@ -345,6 +475,7 @@ export function createToolkitXy({ id, config, dataset, parent }: { id: string, c
             return [v, dataset.map(ds => isNaN(ds.values[i]) ? "-" : ds.values[i]).join(",")]
         });
         rows = [
+            [`${config.title.text || "-"} ${config.title.subtitle.text ? `: ${config.title.subtitle.text}` : ''}`, "", "", ""],
             ['', ...dataset.map(ds => ds.name)],
             ['Σ', ...dataset.map(ds => ds.values.reduce((a: number, b: number) => a + b, 0))],
             ['μ', ...dataset.map(ds => {
@@ -377,7 +508,7 @@ export function createToolkitXy({ id, config, dataset, parent }: { id: string, c
 
     const { tableWrapper, table, thead, tbody } = createTableSkeleton({ config, id });
 
-    const TrTh = rows.slice(0, 3);
+    const TrTh = rows.slice(0, 4);
     TrTh.forEach(t => {
         const tr = spawn("TR");
         t.forEach(h => {
@@ -394,7 +525,7 @@ export function createToolkitXy({ id, config, dataset, parent }: { id: string, c
         thead.appendChild(tr);
     });
 
-    const TrTd = rows.slice(3).map((row: any) => {
+    const TrTd = rows.slice(4).map((row: any) => {
         return [row[0], ...row[1].split(",")];
     });
 
@@ -448,7 +579,8 @@ export function createToolkitXy({ id, config, dataset, parent }: { id: string, c
 const toolkit = {
     createToolkitXy,
     createToolkitDonut,
-    createToolkitVerticalBar
+    createToolkitVerticalBar,
+    createToolkitGauge
 }
 
 export default toolkit;

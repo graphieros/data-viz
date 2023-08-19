@@ -8,6 +8,7 @@ export namespace DataVisionAttribute {
     export const XY = "data-vision-xy";
     export const DONUT = "data-vision-donut";
     export const VERTICAL_BAR = "data-vision-vertical-bar";
+    export const GAUGE = "data-vision-gauge";
 }
 
 export namespace DomElement {

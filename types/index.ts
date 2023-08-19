@@ -15,10 +15,9 @@ export type State = {
 }
 
 export type XyState = State & {}
-
 export type DonutState = State & {}
-
 export type VerticalState = State & {}
+export type GaugeState = State & {}
 
 export type XyStateObject = {
     parent: HTMLDivElement;
@@ -53,6 +52,15 @@ export type VerticalStateObject = {
     drawingArea: DrawingArea;
     total: number;
     average: number;
+}
+
+export type GaugeStateObject = {
+    parent: HTMLDivElement;
+    svg: SVGElement;
+    config: Config;
+    dataset: GaugeDataset;
+    drawingArea: DrawingArea;
+    total: number;
 }
 
 export type Config = {
@@ -91,6 +99,19 @@ export type VerticalDatasetItem = {
     value: number;
     color: string;
     children?: VerticalDatasetItem[];
+}
+
+export type Range = {
+    from: number;
+    to: number;
+    quantity: number;
+    color: string | null;
+}
+
+export type GaugeDataset = {
+    base: number;
+    value: number;
+    series: Range[];
 }
 
 export type Padding = {

@@ -1,4 +1,4 @@
-import { DonutState, VerticalState, XyState } from "../types"
+import { DonutState, GaugeState, VerticalState, XyState } from "../types"
 
 export const XY_STATE: XyState = {
     isTooltip: false,
@@ -21,10 +21,18 @@ export const VERTICAL_STATE: VerticalState = {
     openTables: []
 }
 
+export const GAUGE_STATE: GaugeState = {
+    isTooltip: false,
+    clientX: 0,
+    clientY: 0,
+    openTables: []
+}
+
 const state = {
     XY_STATE,
     DONUT_STATE,
-    VERTICAL_STATE
+    VERTICAL_STATE,
+    GAUGE_STATE
 }
 
 export default state;

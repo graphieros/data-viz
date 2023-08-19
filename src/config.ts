@@ -547,6 +547,164 @@ export const configVerticalBar = {
     }
 }
 
+export const configGauge = {
+    backgroundColor: "#FFFFFF",
+    color: "#2D353C",
+    fontFamily: "inherit",
+    width: 500,
+    height: 400,
+    useDiv: true,
+    animation: {
+        show: true,
+        speed: 1,
+        acceleration: 1,
+    },
+    // don't promote padding
+    padding: {
+        top: 24,
+        right: 0,
+        bottom: 24,
+        left: 0
+    },
+    toolkit: {
+        show: true,
+        buttons: {
+            backgroundColor: "#FFFFFF",
+            color: "#2D353C",
+            size: 32,
+            outline: "1px solid #e1e5e8",
+        },
+        csvExport: {
+            show: true,
+        },
+    },
+    arcs: {
+        sizeProportion: 1, // don't promote
+        gradient: {
+            show: true,
+            color: "#FFFFFF",
+            intensity: 40,
+        },
+        selected: {
+            useDropShadow: true
+        }
+    },
+    dataLabels: {
+        rating: {
+            fontSize: 48,
+            bold: true,
+            showPlusSign: false,
+            rounding: 1,
+            useRatingColor: true,
+            color: "#2D353C"
+        },
+        markers: {
+            color: "#FFFFFF",
+            stroke: "#2D353C",
+            strokeWidth: 2,
+            values: {
+                fontSize: 16,
+                color: "#2D353C",
+                bold: true,
+                rounding: 0,
+                offsetY: 0
+            },
+            shadow: {
+                show: true,
+                color: "#2D353C",
+                opacity: 30,
+            }
+        }
+    },
+    pointer: {
+        size: 1,
+        stroke: "#2D353C",
+        strokeWidth: 16,
+        useRatingColor: true,
+        color: "#FFFFFF",
+        shadow: {
+            show: true,
+            color: "#2D353C",
+            opacity: 30,
+        },
+        circle: {
+            radius: 12,
+            stroke: "#FFFFFF",
+            strokeWidth: 2,
+            color: "#F6F6F6"
+        }
+    },
+    tooltip: {
+        show: true,
+        backgroundColor: "#FFFFFF",
+        color: "#2D353C",
+        padding: 12,
+        fontSize: 14,
+        fontFamily: "inherit",
+        border: "1px solid #e1e5e8",
+        borderRadius: 4,
+        boxShadow: "0 6px 12px -3px #2D353C33",
+        offsetY: 12,
+        maxWidth: 300,
+        translations: {
+            from: "From",
+            to: "to"
+        },
+        percentage: {
+            show: true,
+            rounding: 1,
+            bold: false,
+        },
+        value: {
+            bold: true,
+            show: true,
+            rounding: 0,
+        },
+    },
+    title: {
+        show: true,
+        text: "",
+        fontSize: 20,
+        bold: true,
+        color: "#2D353C",
+        backgroundColor: "#FFFFFF",
+        textAlign: "center",
+        marginTop: 0,
+        offsetY: 0,
+        offsetX: 0,
+        subtitle: {
+            text: "",
+            fontSize: 16,
+            bold: false,
+            color: "#CCCCCC",
+        }
+    },
+    table: {
+        show: false,
+        th: {
+            backgroundColor: "#FAFAFA",
+            color: "#2D353C",
+            fontSize: 14,
+            roundingValue: 0,
+            roundingRating: 1,
+        },
+        td: {
+            backgroundColor: "#FFFFFF",
+            color: "#2D353C",
+            fontSize: 14,
+            roundingValue: 0,
+            roundingPercentage: 1,
+        },
+        translations: {
+            rating: "Rating",
+            from: "from",
+            to: "to",
+            value: "Value",
+            toTotal: "%/total"
+        }
+    }
+}
+
 const config = {
     palette,
     opacity,

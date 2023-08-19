@@ -1,4 +1,4 @@
-import { Config, DrawingArea } from "../types";
+import { Config, DrawingArea, UnknownObj } from "../types";
 import { opacity, palette } from "./config";
 import { SvgAttribute } from "./constants";
 
@@ -211,36 +211,57 @@ export function parseUserConfig(userConfig: any) {
 
 export function parseUserDataset(userDataset: string | any[] | undefined, type = 'object') {
     if (typeof userDataset === "string") {
-        return JSON.parse(userDataset).map((s: any, i: number) => {
+        const dataset = JSON.parse(userDataset);
+
+        if (Array.isArray(dataset)) {
+            return dataset.map((s: any, i: number) => {
+                return {
+                    ...s,
+                    datasetId: createUid(),
+                    color: convertColorToHex(s.color) || palette[i] || palette[i % i],
+                    datapoints: [],
+                    lines: [],
+                    areas: [],
+                    dataLabels: [],
+                    donutTraps: [],
+                    verticalTraps: [],
+                    verticalLayers: []
+                }
+            });
+        } else {
             return {
-                ...s,
+                ...dataset,
                 datasetId: createUid(),
-                color: convertColorToHex(s.color) || palette[i] || palette[i % i],
                 datapoints: [],
-                lines: [],
-                areas: [],
-                dataLabels: [],
-                donutTraps: [],
-                verticalTraps: [],
-                verticalLayers: []
+                traps: []
             }
-        });
+        }
+
     } else if (typeof userDataset === 'object') {
-        return userDataset.map((s: any, i: number) => {
+        if (Array.isArray(userDataset)) {
+            return userDataset.map((s: any, i: number) => {
+                return {
+                    ...s,
+                    datasetId: createUid(),
+                    color: convertColorToHex(s.color) || palette[i] || palette[i % i],
+                    datapoints: [],
+                    lines: [],
+                    areas: [],
+                    dataLabels: [],
+                    linearProgressions: [],
+                    donutTraps: [],
+                    verticalTraps: [],
+                    verticalLayers: []
+                }
+            });
+        } else {
             return {
-                ...s,
+                ...(userDataset as UnknownObj),
                 datasetId: createUid(),
-                color: convertColorToHex(s.color) || palette[i] || palette[i % i],
                 datapoints: [],
-                lines: [],
-                areas: [],
-                dataLabels: [],
-                linearProgressions: [],
-                donutTraps: [],
-                verticalTraps: [],
-                verticalLayers: []
+                traps: []
             }
-        });
+        }
     } else {
         if (type === 'object') {
             return {}
@@ -362,7 +383,7 @@ export function treeShake({ userConfig, defaultConfig }: { userConfig: Config, d
     return convertConfigColors(finalConfig);
 }
 
-export function createSvg({ parent, dimensions, config }: { parent: HTMLDivElement, dimensions: { x: number, y: number }, config: Config }) {
+export function createSvg({ parent, dimensions, config, overflow = true }: { parent: HTMLDivElement, dimensions: { x: number, y: number }, config: Config, overflow?: boolean }) {
     const svg = spawnNS("svg");
     svg.setAttribute('viewBox', `0 0 ${dimensions.x} ${dimensions.y}`);
     addTo(svg, "xmlns", "http://www.w3.org/2000/svg");
@@ -371,7 +392,11 @@ export function createSvg({ parent, dimensions, config }: { parent: HTMLDivEleme
     svg.style.background = config.backgroundColor;
     svg.style.color = config.color;
     svg.style.fontFamily = config.fontFamily;
-    svg.style.overflow = "visible";
+    if (overflow) {
+        svg.style.overflow = "visible";
+    } else {
+        svg.style.overflow = "hidden";
+    }
     svg.style.userSelect = "none";
     parent.appendChild(svg);
     return svg;

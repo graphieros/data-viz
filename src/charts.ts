@@ -2,6 +2,7 @@ import { CssClass, DataVisionAttribute } from "./constants";
 import { prepareDonut } from "./donut";
 import { prepareXy } from "./xy";
 import { prepareVerticalBar } from "./verticalBar";
+import { prepareGauge } from "./gauge";
 
 export function createCharts(attr = "") {
     const targets: HTMLCollection = document.getElementsByClassName(CssClass.DATA_VISION);
@@ -28,6 +29,13 @@ export function createCharts(attr = "") {
                 return dataVisionWrapper.hasAttribute(DataVisionAttribute.VERTICAL_BAR)
             });
             type_vertical_bar.forEach(verticalBar => prepareVerticalBar(verticalBar as unknown as HTMLDivElement));
+        }
+
+        if (!attr || attr === DataVisionAttribute.GAUGE) {
+            const type_gauge = Array.from(targets).filter((dataVisionWrapper) => {
+                return dataVisionWrapper.hasAttribute(DataVisionAttribute.GAUGE)
+            });
+            type_gauge.forEach(gauge => prepareGauge(gauge as unknown as HTMLDivElement));
         }
     }
 }
