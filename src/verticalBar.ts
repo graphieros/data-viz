@@ -338,7 +338,7 @@ export function drawVerticalBar({ state, id }: { state: VerticalState, id: strin
             if (ds.isChild) {
                 addTo(label, SvgAttribute.Y, (drawingArea.top + (config.bars.height / 2) + (config.dataLabels.names.fontSize * 1.1)) + ((config.bars.height + (i === 0 ? 0 : config.bars.gap)) * i));
                 label.innerHTML = ds.name;
-                addTo(label, SvgAttribute.FILL, config.dataLabels.color);
+                addTo(label, SvgAttribute.FILL, config.dataLabels.names.useSerieColor ? ds.color : config.dataLabels.names.color);
 
                 const parentLabel = spawnNS(SvgElement.TEXT);
                 addTo(parentLabel, SvgAttribute.TEXT_ANCHOR, "end");
