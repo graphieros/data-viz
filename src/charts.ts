@@ -45,3 +45,6 @@ const charts = {
 }
 
 export default charts;
+
+// ISSUES
+// verticalBar

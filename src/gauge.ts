@@ -24,6 +24,7 @@ export function handleConfigChange({ mutations, configObserver, dataset, id, sta
                     parent,
                     dimensions: { x: newConfig.width, y: newConfig.height },
                     config: convertConfigColors(state[id].config),
+                    overflow: false
                 });
                 loadGauge({
                     parent,
@@ -56,6 +57,7 @@ export function handleDatasetChange({ mutations, datasetObserver, config, id, st
                     parent,
                     dimensions: { x: config.width, y: config.height },
                     config,
+                    overflow: false
                 });
                 loadGauge({
                     parent,
@@ -136,6 +138,8 @@ export function loadGauge({
     let total = 0;
     if (dataset.base) {
         total = dataset.base;
+    } else {
+        total = dataset.series.map(s => s.quantity || 0).reduce((a, b) => a + b, 0)
     }
 
     Object.assign(GAUGE_STATE, {
