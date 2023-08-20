@@ -1,79 +1,12 @@
 import { Config, DonutDatasetItem, DonutState, DonutStateObject, DrawingArea } from "../types";
 import { configDonut, opacity } from "./config";
 import { DataVisionAttribute, SvgAttribute, SvgElement } from "./constants";
-import { addTo, convertConfigColors, createConfig, createSvg, createUid, getDrawingArea, makeDonut, parseUserConfig, parseUserDataset, spawnNS } from "./functions";
+import { addTo, createConfig, createSvg, createUid, getDrawingArea, handleConfigOrDatasetChange, makeDonut, parseUserConfig, parseUserDataset, spawnNS } from "./functions";
 import { createLegendDonut } from "./legend";
 import { DONUT_STATE } from "./state_xy";
 import { createTitle } from "./title";
 import { createToolkitDonut } from "./toolkit";
 import { createTooltipDonut } from "./tooltip";
-
-export function handleConfigChange({ mutations, configObserver, dataset, id, state, parent, svg }: { mutations: MutationRecord[], dataset: any, configObserver: MutationObserver, id: string, state: DonutState, parent: HTMLDivElement, svg: SVGElement }) {
-    for (const mutation of mutations) {
-        if (mutation.type === 'attributes' && mutation.attributeName === DataVisionAttribute.CONFIG) {
-            const newJSONValue = (mutation.target as HTMLElement).getAttribute(DataVisionAttribute.CONFIG);
-            if (newJSONValue === DataVisionAttribute.OK || newJSONValue === null) return;
-            try {
-                const newConfig = JSON.parse(newJSONValue);
-                state[id].config = createConfig({
-                    userConfig: newConfig,
-                    defaultConfig: configDonut
-                });
-                svg.remove();
-                parent.innerHTML = "";
-                svg = createSvg({
-                    parent,
-                    dimensions: { x: newConfig.width, y: newConfig.height },
-                    config: convertConfigColors(state[id].config),
-                });
-                loadDonut({
-                    parent,
-                    config: convertConfigColors(state[id].config),
-                    dataset,
-                    donutId: id,
-                    svg
-                });
-                configObserver.disconnect();
-                parent.dataset.visionConfig = DataVisionAttribute.OK;
-                configObserver.observe(parent, { attributes: true, attributeFilter: [DataVisionAttribute.CONFIG] })
-            } catch (error) {
-                console.error('Data Vision exception. Invalid JSON format:', error);
-            }
-        }
-    }
-}
-
-export function handleDatasetChange({ mutations, datasetObserver, config, id, state, parent, svg }: { mutations: MutationRecord[], config: Config, datasetObserver: MutationObserver, id: string, state: DonutState, parent: HTMLDivElement, svg: SVGElement }) {
-    for (const mutation of mutations) {
-        if (mutation.type === 'attributes' && mutation.attributeName === DataVisionAttribute.DATASET) {
-            const newJSONValue = (mutation.target as HTMLElement).getAttribute(DataVisionAttribute.DATASET);
-            if (newJSONValue === DataVisionAttribute.OK || newJSONValue === null) return;
-            try {
-                const newDataset = JSON.parse(newJSONValue);
-                state[id].dataset = parseUserDataset(newDataset);
-                svg.remove();
-                parent.innerHTML = "";
-                svg = createSvg({
-                    parent,
-                    dimensions: { x: config.width, y: config.height },
-                    config,
-                });
-                loadDonut({
-                    parent,
-                    config,
-                    dataset: parseUserDataset(newDataset),
-                    donutId: id,
-                    svg
-                });
-                datasetObserver.disconnect();
-                parent.dataset.visionConfig = DataVisionAttribute.OK;
-                datasetObserver.observe(parent, { attributes: true, attributeFilter: [DataVisionAttribute.DATASET] })
-            } catch (error) {
-                console.error('Data Vision exception. Invalid JSON format:', error);
-            }
-        }
-    }
-}
 
 export function prepareDonut(parent: HTMLDivElement) {
     parent.style.width = `${parent.getAttribute("width")}`;
@@ -97,8 +30,33 @@ export function prepareDonut(parent: HTMLDivElement) {
         config
     });
 
-    const configObserver: MutationObserver = new MutationObserver(mutations => handleConfigChange({ mutations, configObserver, id: donutId, parent, svg, dataset, state: DONUT_STATE }));
-    const datasetObserver: MutationObserver = new MutationObserver(mutations => handleDatasetChange({ mutations, datasetObserver, id: donutId, parent, svg, config, state: DONUT_STATE })) as any;
+    const configObserver: MutationObserver = new MutationObserver(mutations => handleConfigOrDatasetChange({
+        mutations,
+        observer: configObserver,
+        id: donutId,
+        parent,
+        svg,
+        dataset,
+        state: DONUT_STATE,
+        idType: "donutId",
+        observedType: "config",
+        config,
+        loader: loadDonut
+    }));
+
+    const datasetObserver: MutationObserver = new MutationObserver(mutations => handleConfigOrDatasetChange({
+        mutations,
+        observer: datasetObserver,
+        id: donutId,
+        parent,
+        svg,
+        dataset,
+        state: DONUT_STATE,
+        idType: "donutId",
+        observedType: "dataset",
+        config,
+        loader: loadDonut
+    }));
 
     configObserver.observe(parent, { attributes: true, attributeFilter: [DataVisionAttribute.CONFIG] });
     datasetObserver.observe(parent, { attributes: true, attributeFilter: [DataVisionAttribute.DATASET] });

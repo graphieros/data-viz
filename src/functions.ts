@@ -1,6 +1,6 @@
-import { Config, DrawingArea, UnknownObj } from "../types";
-import { opacity, palette } from "./config";
-import { SvgAttribute } from "./constants";
+import { Config, DonutDatasetItem, DonutState, DrawingArea, GaugeDataset, GaugeState, RadialBarDatasetItem, RadialBarState, UnknownObj, VerticalDatasetItem, VerticalState, XyDatasetItem, XyState } from "../types";
+import { configDonut, configGauge, configRadialBar, configVerticalBar, configXy, opacity, palette } from "./config";
+import { DataVisionAttribute, SvgAttribute } from "./constants";
 
 /** Shorthand for element.setAttribute
  * 
@@ -758,6 +758,125 @@ export function createArc([cx, cy]: any, [rx, ry]: any, [position, ratio]: [numb
     };
 }
 
+export function handleConfigOrDatasetChange({
+    mutations,
+    observer,
+    dataset,
+    config,
+    id,
+    state,
+    parent,
+    svg,
+    observedType,
+    idType,
+    loader
+}: {
+    mutations: MutationRecord[],
+    observer: MutationObserver,
+    dataset: XyDatasetItem[] | DonutDatasetItem[] | VerticalDatasetItem[] | GaugeDataset | RadialBarDatasetItem[],
+    id: string,
+    config: Config,
+    state: XyState | DonutState | VerticalState | GaugeState | RadialBarState,
+    parent: HTMLDivElement,
+    svg: SVGElement,
+    observedType: "dataset" | "config",
+    idType: "xyId" | "donutId" | "verticalId" | "gaugeId" | "radialId",
+    loader: (...args: any[]) => void
+}) {
+    let defaultConfig: Config;
+    let overflow = true;
+    switch (idType) {
+        case "xyId":
+            defaultConfig = configXy;
+            break;
+        case "donutId":
+            defaultConfig = configDonut;
+            break;
+        case "verticalId":
+            defaultConfig = configVerticalBar;
+            break;
+        case "gaugeId":
+            defaultConfig = configGauge;
+            overflow = false
+            break;
+        case "radialId":
+            defaultConfig = configRadialBar;
+            break;
+        default:
+            return;
+    }
+    for (const mutation of mutations) {
+
+        if (observedType === "config") {
+            if (mutation.type === 'attributes' && mutation.attributeName === DataVisionAttribute.CONFIG) {
+                const newJSONValue = (mutation.target as HTMLElement).getAttribute(DataVisionAttribute.CONFIG);
+                if (newJSONValue === DataVisionAttribute.OK || newJSONValue === null) return;
+                try {
+                    const newConfig = JSON.parse(newJSONValue);
+                    state[id].config = createConfig({
+                        userConfig: newConfig,
+                        defaultConfig
+                    });
+                    svg.remove();
+                    parent.innerHTML = "";
+                    svg = createSvg({
+                        parent,
+                        dimensions: { x: newConfig.width, y: newConfig.height },
+                        config: convertConfigColors(state[id].config),
+                        overflow
+                    });
+                    loader({
+                        parent,
+                        config: convertConfigColors(state[id].config),
+                        dataset,
+                        [idType]: id,
+                        svg
+                    });
+                    observer.disconnect();
+                    parent.dataset.visionConfig = DataVisionAttribute.OK;
+                    observer.observe(parent, { attributes: true, attributeFilter: [DataVisionAttribute.CONFIG] })
+                } catch (error) {
+                    console.error(`Data Vision exception. Invalid JSON format for ${idType} config:`, error);
+                }
+            }
+        }
+
+        if (observedType === "dataset") {
+            for (const mutation of mutations) {
+                if (mutation.type === 'attributes' && mutation.attributeName === DataVisionAttribute.DATASET) {
+                    const newJSONValue = (mutation.target as HTMLElement).getAttribute(DataVisionAttribute.DATASET);
+                    if (newJSONValue === DataVisionAttribute.OK || newJSONValue === null) return;
+                    try {
+                        const newDataset = JSON.parse(newJSONValue);
+                        state[id].dataset = parseUserDataset(newDataset);
+                        svg.remove();
+                        parent.innerHTML = "";
+                        svg = createSvg({
+                            parent,
+                            dimensions: { x: config.width, y: config.height },
+                            config,
+                            overflow
+                        });
+                        loader({
+                            parent,
+                            config,
+                            dataset: parseUserDataset(newDataset),
+                            donutId: id,
+                            svg
+                        });
+                        observer.disconnect();
+                        parent.dataset.visionConfig = DataVisionAttribute.OK;
+                        observer.observe(parent, { attributes: true, attributeFilter: [DataVisionAttribute.DATASET] })
+                    } catch (error) {
+                        console.error(`Data Vision exception. Invalid JSON format for ${idType} dataset:`, error);
+                    }
+                }
+            }
+        }
+
+    }
+}
+
 const utils = {
     addTo,
     applyEllipsis,
@@ -792,6 +911,7 @@ const utils = {
     translateY,
     updateCssClasses,
     walkTheDOM,
+    handleConfigOrDatasetChange
 };
 
 export default utils;

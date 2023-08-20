@@ -1,79 +1,12 @@
 import { Config, DrawingArea, VerticalDatasetItem, VerticalState, VerticalStateObject } from "../types";
 import { configVerticalBar, opacity } from "./config";
 import { DataVisionAttribute, SvgAttribute, SvgElement } from "./constants";
-import { addTo, convertConfigColors, createConfig, createSvg, createUid, getDrawingArea, parseUserConfig, parseUserDataset, shiftHue, spawnNS } from "./functions";
+import { addTo, createConfig, createSvg, createUid, getDrawingArea, handleConfigOrDatasetChange, parseUserConfig, parseUserDataset, shiftHue, spawnNS } from "./functions";
 import { createLegendVerticalBar } from "./legend";
 import { VERTICAL_STATE } from "./state_xy";
 import { createTitle } from "./title";
 import { createToolkitVerticalBar } from "./toolkit";
 import { createTooltipVerticalBar } from "./tooltip";
-
-export function handleConfigChange({ mutations, configObserver, dataset, id, state, parent, svg }: { mutations: MutationRecord[], dataset: any, configObserver: MutationObserver, id: string, state: VerticalState, parent: HTMLDivElement, svg: SVGElement }) {
-    for (const mutation of mutations) {
-        if (mutation.type === 'attributes' && mutation.attributeName === DataVisionAttribute.CONFIG) {
-            const newJSONValue = (mutation.target as HTMLElement).getAttribute(DataVisionAttribute.CONFIG);
-            if (newJSONValue === DataVisionAttribute.OK || newJSONValue === null) return;
-            try {
-                const newConfig = JSON.parse(newJSONValue);
-                state[id].config = createConfig({
-                    userConfig: newConfig,
-                    defaultConfig: configVerticalBar
-                });
-                svg.remove();
-                parent.innerHTML = "";
-                svg = createSvg({
-                    parent,
-                    dimensions: { x: newConfig.width, y: newConfig.height },
-                    config: convertConfigColors(state[id].config),
-                });
-                loadVerticalBar({
-                    parent,
-                    config: convertConfigColors(state[id].config),
-                    dataset,
-                    verticalId: id,
-                    svg
-                });
-                configObserver.disconnect();
-                parent.dataset.visionConfig = DataVisionAttribute.OK;
-                configObserver.observe(parent, { attributes: true, attributeFilter: [DataVisionAttribute.CONFIG] })
-            } catch (error) {
-                console.error('Data Vision exception. Invalid JSON format:', error);
-            }
-        }
-    }
-}
-
-export function handleDatasetChange({ mutations, datasetObserver, config, id, state, parent, svg }: { mutations: MutationRecord[], config: Config, datasetObserver: MutationObserver, id: string, state: VerticalState, parent: HTMLDivElement, svg: SVGElement }) {
-    for (const mutation of mutations) {
-        if (mutation.type === 'attributes' && mutation.attributeName === DataVisionAttribute.DATASET) {
-            const newJSONValue = (mutation.target as HTMLElement).getAttribute(DataVisionAttribute.DATASET);
-            if (newJSONValue === DataVisionAttribute.OK || newJSONValue === null) return;
-            try {
-                const newDataset = JSON.parse(newJSONValue);
-                state[id].dataset = parseUserDataset(newDataset);
-                svg.remove();
-                parent.innerHTML = "";
-                svg = createSvg({
-                    parent,
-                    dimensions: { x: config.width, y: config.height },
-                    config,
-                });
-                loadVerticalBar({
-                    parent,
-                    config,
-                    dataset: parseUserDataset(newDataset),
-                    verticalId: id,
-                    svg
-                });
-                datasetObserver.disconnect();
-                parent.dataset.visionConfig = DataVisionAttribute.OK;
-                datasetObserver.observe(parent, { attributes: true, attributeFilter: [DataVisionAttribute.DATASET] })
-            } catch (error) {
-                console.error('Data Vision exception. Invalid JSON format:', error);
-            }
-        }
-    }
-}
 
 export function prepareVerticalBar(parent: HTMLDivElement) {
     parent.style.width = `${parent.getAttribute("width")}`;
@@ -95,8 +28,33 @@ export function prepareVerticalBar(parent: HTMLDivElement) {
         config,
     });
 
-    const configObserver: MutationObserver = new MutationObserver(mutations => handleConfigChange({ mutations, configObserver, id: verticalId, parent, svg, dataset, state: VERTICAL_STATE }));
-    const datasetObserver: MutationObserver = new MutationObserver(mutations => handleDatasetChange({ mutations, datasetObserver, id: verticalId, parent, svg, config, state: VERTICAL_STATE })) as any;
+    const configObserver: MutationObserver = new MutationObserver(mutations => handleConfigOrDatasetChange({
+        mutations,
+        observer: configObserver,
+        id: verticalId,
+        parent,
+        svg,
+        dataset,
+        state: VERTICAL_STATE,
+        idType: "verticalId",
+        observedType: "config",
+        config,
+        loader: loadVerticalBar
+    }));
+
+    const datasetObserver: MutationObserver = new MutationObserver(mutations => handleConfigOrDatasetChange({
+        mutations,
+        observer: datasetObserver,
+        id: verticalId,
+        parent,
+        svg,
+        dataset,
+        state: VERTICAL_STATE,
+        idType: "donutId",
+        observedType: "dataset",
+        config,
+        loader: loadVerticalBar
+    }));
 
     configObserver.observe(parent, { attributes: true, attributeFilter: [DataVisionAttribute.CONFIG] });
     datasetObserver.observe(parent, { attributes: true, attributeFilter: [DataVisionAttribute.DATASET] });

@@ -27,13 +27,18 @@ if (typeof window !== undefined) {
             createCharts(DataVisionAttribute.GAUGE);
         }
 
+        function initRadialBars() {
+            createCharts(DataVisionAttribute.RADIAL_BAR);
+        }
+
         // Public
         return {
             createCharts,
             initXy,
             initDonuts,
             initVerticalBars,
-            initGauges
+            initGauges,
+            initRadialBars
         }
     }(
         createCharts,

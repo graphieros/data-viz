@@ -18,6 +18,7 @@ export type XyState = State & {}
 export type DonutState = State & {}
 export type VerticalState = State & {}
 export type GaugeState = State & {}
+export type RadialBarState = State & {}
 
 export type XyStateObject = {
     parent: HTMLDivElement;
@@ -32,6 +33,15 @@ export type XyStateObject = {
     config: Config;
     relativeZero: number;
     absoluteMax: number;
+}
+
+export type RadialBarStateObject = {
+    parent: HTMLDivElement;
+    svg: SVGElement;
+    config: Config;
+    dataset: RadialBarDatasetItem[];
+    total: number;
+    drawingArea: DrawingArea;
 }
 
 export type DonutStateObject = {
@@ -69,6 +79,13 @@ export type Config = {
     height: number;
     padding: Padding;
     toolkit: UnknownObj;
+}
+
+export type RadialBarDatasetItem = {
+    [key: string]: any;
+    name: string;
+    percentage: number;
+    value: number;
 }
 
 export type XyDatasetItem = {

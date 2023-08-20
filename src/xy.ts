@@ -1,5 +1,5 @@
 import { Chart, DataVisionAttribute, EventTrigger, SvgAttribute, SvgElement } from "./constants";
-import { spawnNS, addTo, isValidUserValue, createLinearGradient, shiftHue, closestDecimal, createArrow, createBarGradientPositive, createBarGradientNegative, convertColorToHex, getDrawingArea, createUid, parseUserConfig, parseUserDataset, createConfig, createSvg, convertConfigColors, calcLinearProgression } from "./functions";
+import { spawnNS, addTo, isValidUserValue, createLinearGradient, shiftHue, closestDecimal, createArrow, createBarGradientPositive, createBarGradientNegative, convertColorToHex, getDrawingArea, createUid, parseUserConfig, parseUserDataset, createConfig, createSvg, calcLinearProgression, handleConfigOrDatasetChange } from "./functions";
 import { configXy, opacity, palette } from "./config";
 import { XY_STATE } from "./state_xy";
 import { createTitle } from "./title";
@@ -26,8 +26,33 @@ export function prepareXy(parent: HTMLDivElement) {
         config
     });
 
-    const configObserver: MutationObserver = new MutationObserver(mutations => handleConfigChange({ mutations, configObserver, id: xyId, parent, svg, dataset, state: XY_STATE }));
-    const datasetObserver: MutationObserver = new MutationObserver(mutations => handleDatasetChange({ mutations, datasetObserver, id: xyId, parent, svg, config, state: XY_STATE })) as any;
+    const configObserver: MutationObserver = new MutationObserver(mutations => handleConfigOrDatasetChange({
+        mutations,
+        observer: configObserver,
+        id: xyId,
+        parent,
+        svg,
+        dataset,
+        state: XY_STATE,
+        idType: "xyId",
+        observedType: "config",
+        config,
+        loader: loadXy
+    }));
+
+    const datasetObserver: MutationObserver = new MutationObserver(mutations => handleConfigOrDatasetChange({
+        mutations,
+        observer: datasetObserver,
+        id: xyId,
+        parent,
+        svg,
+        dataset,
+        state: XY_STATE,
+        idType: "donutId",
+        observedType: "dataset",
+        config,
+        loader: loadXy
+    }));
 
     configObserver.observe(parent, { attributes: true, attributeFilter: [DataVisionAttribute.CONFIG] });
     datasetObserver.observe(parent, { attributes: true, attributeFilter: [DataVisionAttribute.DATASET] });
@@ -222,73 +247,6 @@ export function drawXy({ state, id }: { state: XyState, id: string }) {
             dataset: mutedDataset,
             parent
         });
-    }
-}
-
-export function handleConfigChange({ mutations, configObserver, dataset, id, state, parent, svg }: { mutations: MutationRecord[], dataset: any, configObserver: MutationObserver, id: string, state: XyState, parent: HTMLDivElement, svg: SVGElement }) {
-    for (const mutation of mutations) {
-        if (mutation.type === 'attributes' && mutation.attributeName === DataVisionAttribute.CONFIG) {
-            const newJSONValue = (mutation.target as HTMLElement).getAttribute(DataVisionAttribute.CONFIG);
-            if (newJSONValue === DataVisionAttribute.OK || newJSONValue === null) return;
-            try {
-                const newConfig = JSON.parse(newJSONValue);
-                state[id].config = createConfig({
-                    userConfig: newConfig,
-                    defaultConfig: configXy
-                });
-                svg.remove();
-                parent.innerHTML = "";
-                svg = createSvg({
-                    parent,
-                    dimensions: { x: newConfig.width, y: newConfig.height },
-                    config: convertConfigColors(state[id].config),
-                });
-                loadXy({
-                    parent,
-                    config: convertConfigColors(state[id].config),
-                    dataset,
-                    xyId: id,
-                    svg
-                });
-                configObserver.disconnect();
-                parent.dataset.visionConfig = DataVisionAttribute.OK;
-                configObserver.observe(parent, { attributes: true, attributeFilter: [DataVisionAttribute.CONFIG] })
-            } catch (error) {
-                console.error('Data Vision exception. Invalid JSON format:', error);
-            }
-        }
-    }
-}
-
-export function handleDatasetChange({ mutations, datasetObserver, config, id, state, parent, svg }: { mutations: MutationRecord[], config: Config, datasetObserver: MutationObserver, id: string, state: XyState, parent: HTMLDivElement, svg: SVGElement }) {
-    for (const mutation of mutations) {
-        if (mutation.type === 'attributes' && mutation.attributeName === DataVisionAttribute.DATASET) {
-            const newJSONValue = (mutation.target as HTMLElement).getAttribute(DataVisionAttribute.DATASET);
-            if (newJSONValue === DataVisionAttribute.OK || newJSONValue === null) return;
-            try {
-                const newDataset = JSON.parse(newJSONValue);
-                state[id].dataset = parseUserDataset(newDataset);
-                svg.remove();
-                parent.innerHTML = "";
-                svg = createSvg({
-                    parent,
-                    dimensions: { x: config.width, y: config.height },
-                    config,
-                });
-                loadXy({
-                    parent,
-                    config,
-                    dataset: parseUserDataset(newDataset),
-                    xyId: id,
-                    svg
-                });
-                datasetObserver.disconnect();
-                parent.dataset.visionConfig = DataVisionAttribute.OK;
-                datasetObserver.observe(parent, { attributes: true, attributeFilter: [DataVisionAttribute.DATASET] })
-            } catch (error) {
-                console.error('Data Vision exception. Invalid JSON format:', error);
-            }
-        }
     }
 }
 
