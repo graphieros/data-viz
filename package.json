@@ -1,6 +1,6 @@
 {
   "name": "data-vision",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "private": false,
   "type": "module",
   "description": "A lightweight and user-empowering Javascript chart library",

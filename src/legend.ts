@@ -1,7 +1,7 @@
 import { drawXy } from "./xy";
 import { DomElement, SvgAttribute, SvgElement } from "./constants";
-import { addTo, spawn, spawnNS } from "./functions";
-import { Config, DonutDatasetItem, DonutState, DonutStateObject, VerticalState, VerticalStateObject, XyDatasetItem, XyState, XyStateObject } from "../types";
+import { addTo, grabId, spawn, spawnNS } from "./functions";
+import { Config, DonutDatasetItem, DonutState, DonutStateObject, RadialBarState, RadialBarStateObject, VerticalState, VerticalStateObject, XyDatasetItem, XyState, XyStateObject } from "../types";
 import { drawDonut } from "./donut";
 import { drawVerticalBar } from "./verticalBar";
 
@@ -26,11 +26,29 @@ export function createLegendWrapper({ config, id }: { config: Config, id: string
     return legendWrapper;
 }
 
+export function createLegendRadialBar({ id, state }: { id: string, state: RadialBarState }) {
+    const { svg, parent, config, drawingArea, dataset } = state[id] as RadialBarStateObject;
+
+    if (!config.legend.show) return;
+
+    const oldLegend = grabId(`legend_${id}`);
+    if (oldLegend) {
+        oldLegend.remove();
+    }
+
+    const legendWrapper = createLegendWrapper({
+        config,
+        id
+    });
+
+    // TODO: dataset.forEAch and so on...
+}
+
 export function createLegendVerticalBar({ id, state }: { id: string, state: VerticalState }) {
     const { svg, parent, config, drawingArea, dataset } = state[id] as VerticalStateObject;
     if (!config.legend.show) return;
 
-    const oldLegend = document.getElementById(`legend_${id}`);
+    const oldLegend = grabId(`legend_${id}`);
     if (oldLegend) {
         oldLegend.remove();
     }
@@ -93,7 +111,7 @@ export function createLegendDonut({ id, state }: { id: string, state: DonutState
 
     if (!config.legend.show) return;
 
-    const oldLegend = document.getElementById(`legend_${id}`);
+    const oldLegend = grabId(`legend_${id}`);
     if (oldLegend) {
         oldLegend.remove();
     }
@@ -180,7 +198,7 @@ export function createLegendXy({ id, state }: { id: string, state: XyState }) {
 
     if (!config.legend.show) return;
 
-    const oldLegend = document.getElementById(`legend_${id}`);
+    const oldLegend = grabId(`legend_${id}`);
     if (oldLegend) {
         oldLegend.remove();
     }
@@ -225,7 +243,8 @@ export function createLegendXy({ id, state }: { id: string, state: XyState }) {
 const legend = {
     createLegendXy,
     createLegendDonut,
-    createLegendVerticalBar
+    createLegendVerticalBar,
+    createLegendRadialBar
 }
 
 export default legend;

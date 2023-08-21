@@ -16,6 +16,7 @@ export default defineConfig({
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'data-vision',
       fileName: 'data-vision',
+      formats: ['es']
     },
     minify: 'terser',
     terserOptions: {

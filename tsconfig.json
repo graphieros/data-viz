@@ -3,7 +3,7 @@
     "types": ["vitest/globals"],
     "target": "ESNext",
     "useDefineForClassFields": true,
-    "module": "ESNext",
+    "module": "ES6",
     "lib": ["ESNext", "DOM"],
     "moduleResolution": "Node",
     "strict": true,

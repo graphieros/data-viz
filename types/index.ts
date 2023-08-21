@@ -41,6 +41,7 @@ export type RadialBarStateObject = {
     config: Config;
     dataset: RadialBarDatasetItem[];
     total: number;
+    average: number;
     drawingArea: DrawingArea;
 }
 

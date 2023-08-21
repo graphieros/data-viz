@@ -713,10 +713,19 @@ export const configRadialBar = {
     height: 400,
     useDiv: true,
     padding: {
-        top: 0,
+        top: 24,
         right: 0,
-        bottom: 0,
+        bottom: 24,
         left: 0
+    },
+    arcs: {
+        track: {
+            width: 0.62
+        },
+        gutter: {
+            color: "#e1E5e8",
+            width: 0.62
+        }
     },
     toolkit: {
         show: true,
@@ -730,7 +739,14 @@ export const configRadialBar = {
             show: true,
         },
     },
-    dataLabels: {},
+    dataLabels: {
+        show: true,
+        fontSize: 14,
+        bold: true,
+        useSerieColor: true,
+        color: "#2D353C",
+        offsetX: 0,
+    },
     tooltip: {
         show: true,
         backgroundColor: "#FFFFFF",
@@ -771,6 +787,14 @@ export const configRadialBar = {
             bold: false,
             color: "#CCCCCC",
         }
+    },
+    legend: {
+        show: true,
+        fontSize: 14,
+        color: "#2D353C",
+        backgroundColor: "#FFFFFF",
+        bold: true,
+        paddingY: 12,
     },
     table: {
         show: false,

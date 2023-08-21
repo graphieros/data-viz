@@ -66,6 +66,7 @@ export namespace SvgAttribute {
     export const STOP_COLOR = "stop-color";
     export const STROKE = "stroke";
     export const STROKE_DASHARRAY = "stroke-dasharray";
+    export const STROKE_DASHOFFSET = "stroke-dashoffset";
     export const STROKE_LINECAP = "stroke-linecap";
     export const STROKE_LINEJOIN = "stroke-linejoin";
     export const STROKE_WIDTH = "stroke-width";
