@@ -1,6 +1,6 @@
-import { Config, DonutDatasetItem, DonutState, GaugeState, UnknownObj, VerticalDatasetItem, VerticalState, XyDatasetItem, XyState } from "../types";
+import { Config, DonutDatasetItem, DonutState, GaugeState, RadialBarDatasetItem, UnknownObj, VerticalDatasetItem, VerticalState, XyDatasetItem, XyState } from "../types";
 import { DomElement } from "./constants";
-import { addTo, isValidUserValue, spawn } from "./functions";
+import { addTo, grabId, isValidUserValue, spawn } from "./functions";
 
 export function generateTooltip({ config }: { config: Config }) {
     const tooltip = spawn(DomElement.DIV) as unknown as HTMLDivElement;
@@ -35,8 +35,59 @@ export function applyEventListener({ state, svg, tooltip, config }: { state: Unk
     });
 }
 
+export function createTooltipRadialBar({ id, state, parent, total }: { id: string, state: VerticalState, parent: HTMLDivElement, total: number }) {
+    const oldTooltip = grabId(`tooltip_${id}`);
+    if (oldTooltip) {
+        oldTooltip.remove();
+    }
+    const config: Config = state[id].config;
+    const svg: SVGElement = state[id].svg;
+    const tooltip = generateTooltip({ config });
+    addTo(tooltip, "id", `tooltip_${id}`);
+    parent.appendChild(tooltip);
+    tooltip.style.display = "none";
+
+    applyEventListener({
+        state,
+        tooltip,
+        svg,
+        config
+    });
+
+    const traps = state[id].dataset.traps;
+    traps.forEach((trap: any) => {
+        const itsDataset = trap.element;
+        if (itsDataset) {
+            trap.element.addEventListener("mouseover", () => generateTooltipContent(trap.datasetId));
+            trap.element.addEventListener("mouseleave", () => {
+                tooltip.style.display = "none";
+                state.isTooltip = false;
+            });
+        }
+    });
+
+    function generateTooltipContent(datasetId: string) {
+        state.isTooltip = true;
+        tooltip.style.display = "flex";
+        const source = state[id].dataset.find((el: RadialBarDatasetItem) => el.datasetId === datasetId);
+
+        let html = `<div style="display:flex;align-items:center;flex-direction:row;gap:4px;font-weight:bold"><svg viewBox="0 0 16 16" height="12" width="12" style="all:unset;font-size:${config.tooltip.fontSize};color:${config.tooltip.color}"><circle fill="${source.color}" cx="8" cy="8" r="8"/></svg>${source.name}</div>`;
+
+        html += `<div style="margin-top:6px;padding-top:6px;border-top:1px solid #e1e5e8;width:100%">`;
+        if (!isNaN(source.percentage) && config.tooltip.percentage.show) {
+            html += `<div style="font-weight:${config.tooltip.percentage.bold ? 'bold' : 'normal'}">${Number(source.percentage.toFixed(config.tooltip.percentage.rounding)).toLocaleString()}%</div>`;
+        }
+        if (!isNaN(source.value) && config.tooltip.value.show) {
+            html += `<div style="font-weight:${config.tooltip.value.bold ? 'bold' : 'normal'}">${Number(source.value.toFixed(config.tooltip.value.rounded)).toLocaleString()}</div>`;
+        }
+        html += `</div>`;
+
+        tooltip.innerHTML = html;
+    }
+}
+
 export function createTooltipGauge({ id, state, parent, total }: { id: string, state: GaugeState, parent: HTMLDivElement, total: number }) {
-    const oldTooltip = document.getElementById(`tooltip_${id}`);
+    const oldTooltip = grabId(`tooltip_${id}`);
     if (oldTooltip) {
         oldTooltip.remove();
     }
@@ -70,7 +121,7 @@ export function createTooltipGauge({ id, state, parent, total }: { id: string, s
         state.isTooltip = true;
         tooltip.style.display = "flex";
         const source = state[id].mutableDataset.series.find((el: any) => el.id === datasetId);
-        let html = `<div style="display:flex;align-items:center;flex-direction:row;gap:4px"><svg viewBox="0 0 16 16" height="12" width="12" style="unset:all"><rect fill="${source.color}" x="0" y="0" width="16" height="16" rx="${12}"/> </svg>${config.tooltip.translations.from} ${source.from} ${config.tooltip.translations.to} ${source.to}</div>`;
+        let html = `<div style="display:flex;align-items:center;flex-direction:row;gap:4px;font-weight:bold"><svg viewBox="0 0 16 16" height="12" width="12" style="all:unset"><rect fill="${source.color}" x="0" y="0" width="16" height="16" rx="${12}"/> </svg>${config.tooltip.translations.from} ${source.from} ${config.tooltip.translations.to} ${source.to}</div>`;
         if (config.tooltip.value.show || config.tooltip.percentage.show) {
             html += `<div style="margin-top:6px;padding-top:6px;border-top:1px solid #e1e5e8;">`;
             if (config.tooltip.value.show) {
@@ -112,7 +163,7 @@ export function createTooltipVerticalBar({ id, state, parent }: { id: string, st
 
         html += `<div style="display:flex;flex-direction:row;gap:6px;align-items:center;">`;
 
-        html += `<svg viewBox="0 0 16 16" height="16" width="16" style="unset:all"><rect fill="${datasetItem.color}" x="0" y="0" width="16" height="16" rx="${config.bars.borderRadius}"/> </svg>`;
+        html += `<svg viewBox="0 0 16 16" height="16" width="16" style="all:unset"><rect fill="${datasetItem.color}" x="0" y="0" width="16" height="16" rx="${config.bars.borderRadius}"/> </svg>`;
 
         html += `<div style="display: flex; align-items:flex-start;flex-direction:column">`;
         if (datasetItem.isChild) {

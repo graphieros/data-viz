@@ -2,7 +2,11 @@ import { Config, DrawingArea, RadialBarDatasetItem, RadialBarState, RadialBarSta
 import { configRadialBar } from "./config";
 import { DataVisionAttribute, SvgAttribute, SvgElement } from "./constants";
 import { addTo, createConfig, createSvg, createUid, getDrawingArea, handleConfigOrDatasetChange, parseUserConfig, parseUserDataset, spawnNS } from "./functions";
+import { createLegendRadialBar } from "./legend";
 import { RADIAL_BAR_STATE } from "./state_xy";
+import { createTitle } from "./title";
+import { createToolkitRadialbar } from "./toolkit";
+import { createTooltipRadialBar } from "./tooltip";
 
 export function prepareRadialBar(parent: HTMLDivElement) {
     parent.style.width = `${parent.getAttribute("width")}`;
@@ -105,7 +109,6 @@ export function loadRadialBar({ parent, config, dataset, radialId, svg }: { pare
 }
 
 export function drawRadialBar({ state, id }: { state: RadialBarState, id: string }) {
-    console.log({ state });
     // CLEAR STATE
     const thisDataset = state[id].dataset;
     thisDataset.datapoints = [];
@@ -149,8 +152,6 @@ export function drawRadialBar({ state, id }: { state: RadialBarState, id: string
         }
     });
 
-    console.log(mutatedDataset);
-
     mutatedDataset.forEach(ds => {
         const G = spawnNS(SvgElement.G);
 
@@ -190,18 +191,91 @@ export function drawRadialBar({ state, id }: { state: RadialBarState, id: string
             addTo(label, SvgAttribute.FONT_WEIGHT, config.dataLabels.bold ? 'bold' : 'normal');
             addTo(label, SvgAttribute.TEXT_ANCHOR, "end");
             addTo(label, SvgAttribute.FILL, config.dataLabels.useSerieColor ? ds.color : config.dataLabels.color);
-            label.innerHTML = `${ds.name}`;
+            label.innerHTML = `${ds.name} : ${isNaN(ds.percentage) ? '-' : Number(ds.percentage.toFixed(config.dataLabels.percentage.rounding)).toLocaleString()}%`;
             G.appendChild(label);
         }
-
         svg.appendChild(G);
         thisDataset.datapoints.push(G);
-
     });
+
+    // traps
+    mutatedDataset.forEach((ds, i) => {
+        const trap = spawnNS(SvgElement.PATH);
+        const trapPath = `M ${drawingArea.centerX - ds.radius}, ${drawingArea.centerY} a ${ds.radius},${ds.radius} 0 1,0 ${ds.radius * 2}, 0 a ${ds.radius},${ds.radius} 0 1,0 ${-ds.radius * 2},0`;
+        addTo(trap, SvgAttribute.D, trapPath);
+        addTo(trap, SvgAttribute.STROKE, "transparent");
+        addTo(trap, SvgAttribute.STROKE_WIDTH, skin.track);
+        addTo(trap, SvgAttribute.STROKE_LINECAP, "round");
+        addTo(trap, SvgAttribute.FILL, "none");
+        trap.addEventListener("mouseover", () => hover(i));
+        trap.addEventListener("mouseout", quit)
+        svg.appendChild(trap);
+        thisDataset.traps.push({
+            element: trap,
+            datasetId: ds.datasetId
+        });
+    });
+
+    function hover(index: number) {
+        thisDataset.datapoints.filter((_: any, i: number) => i !== index).forEach((el: any) => {
+            el.style.filter = "blur(3px) opacity(50%) grayscale(100%)";
+        });
+        thisDataset.dataLabels.filter((_: any, i: number) => i !== index).forEach((el: any) => {
+            el.style.filter = "blur(3px) opacity(50%) grayscale(100%)";
+        });
+        thisDataset.datapoints.filter((_: any, i: number) => i === index).forEach((el: any) => {
+            el.style.transform = "scale(1.01, 1.01)";
+            el.style.transformOrigin = "center";
+        });
+    }
+
+    function quit() {
+        thisDataset.datapoints.forEach((el: any) => {
+            el.style.opacity = "1";
+            el.style.filter = "none";
+            el.style.transform = "scale(1,1)";
+        });
+        thisDataset.dataLabels.forEach((el: any) => {
+            el.style.opacity = "1";
+            el.style.filter = "none";
+            el.style.transform = "scale(1,1)"
+        });
+    }
     // TODO: find a cool way to include a gradient that works with colored background too.
 
+    if (config.tooltip.show) {
+        createTooltipRadialBar({
+            id,
+            state,
+            parent,
+            total
+        })
+    }
 
+    if (config.legend.show) {
+        createLegendRadialBar({
+            id,
+            state
+        })
+    }
 
+    if (config.title.show) {
+        createTitle({
+            id,
+            state
+        });
+    }
+
+    if (config.toolkit.show) {
+        createToolkitRadialbar({
+            id,
+            config,
+            dataset: mutatedDataset,
+            parent,
+            total,
+            average
+        });
+    }
 }
 
 export function makeRadialPath({
@@ -215,7 +289,6 @@ export function makeRadialPath({
 }) {
     const circumference = radius * (1.5 + (percentage / 100 > 1 / 3 ? 0 : 1 - percentage / 100)) * Math.PI;
     const under = radius * 1.5 * Math.PI;
-    console.log({ drawingArea });
     return {
         underDashArray: `${under} ${under}`,
         underDashOffset: under - percentage / 100 * under,

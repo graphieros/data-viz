@@ -725,7 +725,7 @@ export const configRadialBar = {
         gutter: {
             color: "#e1E5e8",
             width: 0.62
-        }
+        },
     },
     toolkit: {
         show: true,
@@ -746,6 +746,9 @@ export const configRadialBar = {
         useSerieColor: true,
         color: "#2D353C",
         offsetX: 0,
+        percentage: {
+            rounding: 1,
+        }
     },
     tooltip: {
         show: true,
@@ -762,10 +765,10 @@ export const configRadialBar = {
         percentage: {
             show: true,
             rounding: 1,
-            bold: false,
+            bold: true,
         },
         value: {
-            bold: true,
+            bold: false,
             show: true,
             rounding: 0,
         },
@@ -803,6 +806,7 @@ export const configRadialBar = {
             color: "#2D353C",
             fontSize: 14,
             roundingValue: 0,
+            roundingAverage: 0,
         },
         td: {
             backgroundColor: "#FFFFFF",
@@ -812,6 +816,8 @@ export const configRadialBar = {
             roundingPercentage: 1,
         },
         translations: {
+            percentage: "%",
+            value: "Value",
         }
     }
 }

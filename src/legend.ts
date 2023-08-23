@@ -1,9 +1,10 @@
 import { drawXy } from "./xy";
 import { DomElement, SvgAttribute, SvgElement } from "./constants";
 import { addTo, grabId, spawn, spawnNS } from "./functions";
-import { Config, DonutDatasetItem, DonutState, DonutStateObject, RadialBarState, RadialBarStateObject, VerticalState, VerticalStateObject, XyDatasetItem, XyState, XyStateObject } from "../types";
+import { Config, DonutDatasetItem, DonutState, DonutStateObject, RadialBarDatasetItem, RadialBarState, RadialBarStateObject, VerticalState, VerticalStateObject, XyDatasetItem, XyState, XyStateObject } from "../types";
 import { drawDonut } from "./donut";
 import { drawVerticalBar } from "./verticalBar";
+import { drawRadialBar } from "./radialBar";
 
 export function createLegendWrapper({ config, id }: { config: Config, id: string }) {
     const legendWrapper = spawn(DomElement.DIV);
@@ -26,6 +27,25 @@ export function createLegendWrapper({ config, id }: { config: Config, id: string
     return legendWrapper;
 }
 
+export function segregateRadialBar({ datasetId, id, state, legendItem }: {
+    datasetId: string,
+    id: string, state: RadialBarState, legendItem: HTMLElement
+}) {
+    if (state[id].segregatedDatasets.includes(datasetId) && state[id].dataset) {
+        state[id].segregatedDatasets = state[id].segregatedDatasets.filter((el: string) => el !== datasetId);
+        legendItem.style.opacity = "1";
+
+    } else {
+        legendItem.style.opacity = "0.5";
+        state[id].segregatedDatasets.push(datasetId);
+        state[id].mutableDataset = state[id].mutableDataset.filter((el: RadialBarDatasetItem) => el.datasetId !== datasetId);
+    }
+    drawRadialBar({
+        state,
+        id
+    })
+}
+
 export function createLegendRadialBar({ id, state }: { id: string, state: RadialBarState }) {
     const { svg, parent, config, drawingArea, dataset } = state[id] as RadialBarStateObject;
 
@@ -40,6 +60,37 @@ export function createLegendRadialBar({ id, state }: { id: string, state: Radial
         config,
         id
     });
+
+    dataset.forEach(ds => {
+        const legendItem = spawn(DomElement.DIV);
+        legendItem.style.display = "flex";
+        legendItem.style.cursor = "pointer";
+        legendItem.style.flexDirection = "flex-row";
+        legendItem.style.alignItems = "center";
+        legendItem.style.justifyContent = "center";
+        legendItem.style.gap = "3px";
+        legendItem.innerHTML = `<span style="color:${ds.color}">⬤</span><span>${ds.name}</span>`
+        legendWrapper.appendChild(legendItem);
+        legendItem.addEventListener("click", () => segregateRadialBar({ datasetId: ds.datasetId, id, state, legendItem }))
+        if (state[id].segregatedDatasets.includes(ds.datasetId)) {
+            legendItem.style.opacity = "0.5";
+        } else {
+            legendItem.style.opacity = "1";
+        }
+    });
+
+    if (config.useDiv) {
+        parent.appendChild(legendWrapper);
+    } else {
+        const foreignObject = spawnNS(SvgElement.FOREIGNOBJECT);
+        addTo(foreignObject, SvgAttribute.X, "0");
+        addTo(foreignObject, SvgAttribute.Y, drawingArea.bottom);
+        addTo(foreignObject, SvgAttribute.WIDTH, drawingArea.fullWidth);
+        addTo(foreignObject, SvgAttribute.HEIGHT, drawingArea.fullHeight - drawingArea.bottom);
+        foreignObject.style.overflow = "visible";
+        foreignObject.appendChild(legendWrapper);
+        svg.appendChild(foreignObject);
+    }
 
     // TODO: dataset.forEAch and so on...
 }
@@ -66,7 +117,7 @@ export function createLegendVerticalBar({ id, state }: { id: string, state: Vert
         legendItem.style.alignItems = "center";
         legendItem.style.justifyContent = "center";
         legendItem.style.gap = "3px";
-        legendItem.innerHTML = `<svg viewBox="0 0 16 16" height="12" width="12" style="unset:all"><rect fill="${ds.color}" x="0" y="0" width="16" height="16" rx="${config.bars.borderRadius}"/> </svg><span>${ds.name}</span>`
+        legendItem.innerHTML = `<svg viewBox="0 0 16 16" height="12" width="12" style="all:unset"><rect fill="${ds.color}" x="0" y="0" width="16" height="16" rx="${config.bars.borderRadius}"/> </svg><span>${ds.name}</span>`
         legendWrapper.appendChild(legendItem);
         legendItem.addEventListener("click", () => segregateVerticalBar({ datasetId: ds.datasetId, id, state, legendItem }))
         if (state[id].segregatedDatasets.includes(ds.datasetId)) {

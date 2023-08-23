@@ -1,7 +1,7 @@
-import { Config, DonutDatasetItem, GaugeDataset, VerticalDatasetItem, XyDatasetItem } from "../types";
+import { Config, DonutDatasetItem, GaugeDataset, RadialBarDatasetItem, VerticalDatasetItem, XyDatasetItem } from "../types";
 import { DomElement, Icon } from "./constants";
 import { addTo, grabId, isValidUserValue, spawn } from "./functions";
-import { VERTICAL_STATE, XY_STATE } from "./state_xy";
+import { RADIAL_BAR_STATE, VERTICAL_STATE, XY_STATE } from "./state_xy";
 
 export function createCsvContent(rows: string[][]) {
     return `data:text/csv;charset=utf-8,${rows.map(r => r.join(',')).join('\n')}`;
@@ -87,6 +87,133 @@ export function createTableSkeleton({ config, id }: { config: Config, id: string
     thead.style.outline = "1px solid #e1e5e8";
     const tbody = spawn("TBODY");
     return { tableWrapper, table, thead, tbody };
+}
+
+export function createToolkitRadialbar({
+    id,
+    config,
+    dataset,
+    parent,
+    total,
+    average
+}: {
+    id: string,
+    config: Config,
+    dataset: RadialBarDatasetItem[],
+    parent: HTMLDivElement,
+    total: number,
+    average: number
+}) {
+    const oldToolkit = grabId(`toolkit_${id}`);
+    if (oldToolkit) {
+        oldToolkit.remove();
+    }
+    const oldTable = grabId(`table_${id}`);
+    if (oldTable) {
+        oldTable.remove();
+    }
+
+    let rows = [[]] as any;
+    const percentageAverage = dataset.map(el => el.percentage).reduce((a, b) => a + b, 0) / dataset.length;
+    const dataRows = dataset.map(ds => {
+        return [ds.name, isNaN(ds.percentage) ? '-' : ds.percentage.toFixed(config.table.td.roundingPercentage), isNaN(ds.value) ? '-' : ds.value.toFixed(config.table.td.roundingValue)]
+    })
+
+    rows = [
+        [`${config.title.text || "-"} ${config.title.subtitle.text ? `: ${config.title.subtitle.text}` : ''}`, '', ''],
+        ['', `${config.table.translations.percentage}`, `${config.table.translations.value}`],
+        ['Σ', `-`, `${total.toFixed(config.table.th.roundingValue)}`],
+        ['μ', `${isNaN(percentageAverage) ? '-' : percentageAverage.toFixed(config.table.th.roundingPercentage)}`, `${isNaN(average) ? '-' : average.toFixed(config.table.th.roundingAverage)}`],
+        ...dataRows
+    ];
+
+    const csvContent = createCsvContent(rows);
+    const toolkitWrapper = createToolkitWrapper({
+        config,
+        id
+    });
+
+    createCsvButton({
+        config,
+        wrapper: toolkitWrapper,
+        csvContent
+    });
+
+    const tableButton = createTableButton({
+        config,
+        wrapper: toolkitWrapper,
+        callback: toggleTable,
+        initIcon: Icon.TABLE_CLOSED
+    });
+
+    const { tableWrapper, table, thead, tbody } = createTableSkeleton({ config, id });
+
+    const TrTh = rows.slice(0, 4);
+    TrTh.forEach((t: any) => {
+        const tr = spawn("TR");
+        t.forEach((h: any) => {
+            const th = spawn("TH");
+            th.innerHTML = isNaN(h) || h === '' ? h : Number(Number(h).toFixed(config.table.th.roundingValue)).toLocaleString();
+            th.style.textAlign = "right";
+            th.style.paddingRight = "6px";
+            th.style.background = config.table.th.backgroundColor;
+            th.style.color = config.table.th.color;
+            th.style.fontSize = `${config.table.th.fontSize}px`;
+            th.style.outline = "1px solid #e1e5e8";
+            tr.appendChild(th);
+        });
+        thead.appendChild(tr);
+    });
+
+    const TrTd = rows.slice(4).map((row: any) => {
+        return row;
+    });
+
+    TrTd.forEach((t: any) => {
+        const tr = spawn("TR");
+        t.forEach((r: any, i: number) => {
+            const td = spawn("TD");
+            td.style.border = "1px solid #e1e5e8";
+            td.style.textAlign = "right";
+            td.style.paddingRight = "6px";
+            td.style.fontVariantNumeric = "tabluar-nums";
+            td.style.fontSize = `${config.table.td.fontSize}px`;
+            td.style.background = config.table.td.backgroundColor;
+            td.style.color = config.table.td.color;
+            td.innerHTML = isNaN(r) || r === '' ? r : Number(Number(r).toFixed(i === 1 ? config.table.td.roundingPercentage : config.table.td.roundingValue)).toLocaleString();
+            tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+    });
+
+    [thead, tbody].forEach(el => table.appendChild(el));
+    tableWrapper.appendChild(table);
+
+    if (config.table.show || RADIAL_BAR_STATE.openTables.includes(id)) {
+        tableWrapper.style.display = "flex";
+        tableButton.innerHTML = Icon.TABLE_CLOSED;
+        RADIAL_BAR_STATE.openTables.push(id);
+    } else {
+        tableWrapper.style.display = "none";
+        tableButton.innerHTML = Icon.TABLE_OPEN;
+        RADIAL_BAR_STATE.openTables = RADIAL_BAR_STATE.openTables.filter(el => el !== id)
+    }
+
+    parent.appendChild(tableWrapper);
+
+    function toggleTable() {
+        if (tableWrapper.style.display === "none") {
+            tableWrapper.style.display = "flex";
+            tableButton.innerHTML = Icon.TABLE_CLOSED;
+            RADIAL_BAR_STATE.openTables.push(id);
+        } else {
+            tableWrapper.style.display = "none";
+            tableButton.innerHTML = Icon.TABLE_OPEN;
+            RADIAL_BAR_STATE.openTables = RADIAL_BAR_STATE.openTables.filter(el => el !== id)
+        }
+    }
+
+    parent.prepend(toolkitWrapper);
 }
 
 export function createToolkitGauge({
