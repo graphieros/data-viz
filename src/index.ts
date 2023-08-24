@@ -31,6 +31,10 @@ if (typeof window !== undefined) {
             createCharts(DataVisionAttribute.RADIAL_BAR);
         }
 
+        function initWaffles() {
+            createCharts(DataVisionAttribute.WAFFLE);
+        }
+
         // Public
         return {
             createCharts,
@@ -38,7 +42,8 @@ if (typeof window !== undefined) {
             initDonuts,
             initVerticalBars,
             initGauges,
-            initRadialBars
+            initRadialBars,
+            initWaffles
         }
     }(
         createCharts,

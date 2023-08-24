@@ -387,7 +387,8 @@ export function drawDonut({ state, id }: { state: DonutState, id: string }) {
             config,
             dataset: mutatedDataset,
             parent,
-            total
+            total,
+            average
         });
     }
 }

@@ -1,5 +1,5 @@
-import { Config, DonutDatasetItem, DonutState, DrawingArea, GaugeDataset, GaugeState, RadialBarDatasetItem, RadialBarState, UnknownObj, VerticalDatasetItem, VerticalState, XyDatasetItem, XyState } from "../types";
-import { configDonut, configGauge, configRadialBar, configVerticalBar, configXy, opacity, palette } from "./config";
+import { Config, DonutDatasetItem, DonutState, DrawingArea, GaugeDataset, GaugeState, RadialBarDatasetItem, RadialBarState, UnknownObj, VerticalDatasetItem, VerticalState, WaffleDatasetItem, WaffleState, XyDatasetItem, XyState } from "../types";
+import { configDonut, configGauge, configRadialBar, configVerticalBar, configWaffle, configXy, opacity, palette } from "./config";
 import { DataVisionAttribute, SvgAttribute } from "./constants";
 
 /** Shorthand for element.setAttribute
@@ -773,14 +773,14 @@ export function handleConfigOrDatasetChange({
 }: {
     mutations: MutationRecord[],
     observer: MutationObserver,
-    dataset: XyDatasetItem[] | DonutDatasetItem[] | VerticalDatasetItem[] | GaugeDataset | RadialBarDatasetItem[],
+    dataset: XyDatasetItem[] | DonutDatasetItem[] | VerticalDatasetItem[] | GaugeDataset | RadialBarDatasetItem[] | WaffleDatasetItem[],
     id: string,
     config: Config,
-    state: XyState | DonutState | VerticalState | GaugeState | RadialBarState,
+    state: XyState | DonutState | VerticalState | GaugeState | RadialBarState | WaffleState,
     parent: HTMLDivElement,
     svg: SVGElement,
     observedType: "dataset" | "config",
-    idType: "xyId" | "donutId" | "verticalId" | "gaugeId" | "radialId",
+    idType: "xyId" | "donutId" | "verticalId" | "gaugeId" | "radialId" | "waffleId",
     loader: (...args: any[]) => void
 }) {
     let defaultConfig: Config;
@@ -801,6 +801,9 @@ export function handleConfigOrDatasetChange({
             break;
         case "radialId":
             defaultConfig = configRadialBar;
+            break;
+        case "waffleId":
+            defaultConfig = configWaffle;
             break;
         default:
             return;

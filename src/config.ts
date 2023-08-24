@@ -822,6 +822,117 @@ export const configRadialBar = {
     }
 }
 
+export const configWaffle = {
+    backgroundColor: "#FFFFFF",
+    color: "#2D353C",
+    fontFamily: "inherit",
+    width: 500,
+    height: 500,
+    useDiv: true,
+    padding: {
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0
+    },
+    grid: {
+        size: 10,
+        vertical: false,
+        spaceBetween: 2
+    },
+    rects: {
+        borderRadius: 4,
+        gradient: {
+            show: true,
+            intensity: 30,
+            baseColor: "#FFFFFF"
+        }
+    },
+    toolkit: {
+        show: true,
+        buttons: {
+            backgroundColor: "#FFFFFF",
+            color: "#2D353C",
+            size: 32,
+            outline: "1px solid #e1e5e8",
+        },
+        csvExport: {
+            show: true,
+        },
+    },
+    tooltip: {
+        show: true,
+        backgroundColor: "#FFFFFF",
+        color: "#2D353C",
+        padding: 12,
+        fontSize: 14,
+        fontFamily: "inherit",
+        border: "1px solid #e1e5e8",
+        borderRadius: 4,
+        boxShadow: "0 6px 12px -3px #2D353C33",
+        offsetY: 12,
+        maxWidth: 300,
+        percentage: {
+            show: true,
+            rounding: 1,
+            bold: true,
+        },
+        value: {
+            bold: false,
+            show: true,
+            rounding: 0,
+        },
+    },
+    title: {
+        show: true,
+        text: "",
+        fontSize: 20,
+        bold: true,
+        color: "#2D353C",
+        backgroundColor: "#FFFFFF",
+        textAlign: "center",
+        marginTop: 0,
+        offsetY: 12,
+        offsetX: 0,
+        subtitle: {
+            text: "",
+            fontSize: 16,
+            bold: false,
+            color: "#CCCCCC",
+        }
+    },
+    legend: {
+        show: true,
+        fontSize: 14,
+        color: "#2D353C",
+        backgroundColor: "#FFFFFF",
+        bold: true,
+        paddingY: 12,
+    },
+    table: {
+        show: false,
+        th: {
+            backgroundColor: "#FAFAFA",
+            color: "#2D353C",
+            fontSize: 14,
+            roundingValue: 0,
+            roundingAverage: 0,
+        },
+        td: {
+            backgroundColor: "#FFFFFF",
+            color: "#2D353C",
+            fontSize: 14,
+            roundingValue: 0,
+            roundingPercentage: 1,
+        },
+        translations: {
+            serie: "Serie",
+            percentage: "%",
+            value: "Value"
+        }
+    }
+}
+
 const config = {
     palette,
     opacity,

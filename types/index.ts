@@ -19,6 +19,7 @@ export type DonutState = State & {}
 export type VerticalState = State & {}
 export type GaugeState = State & {}
 export type RadialBarState = State & {}
+export type WaffleState = State & {}
 
 export type XyStateObject = {
     parent: HTMLDivElement;
@@ -43,6 +44,16 @@ export type RadialBarStateObject = {
     total: number;
     average: number;
     drawingArea: DrawingArea;
+}
+
+export type WaffleStateObject = {
+    parent: HTMLDivElement;
+    svg: SVGElement;
+    config: Config;
+    dataset: WaffleDatasetItem[];
+    drawingArea: DrawingArea;
+    total: number;
+    average: number;
 }
 
 export type DonutStateObject = {
@@ -100,6 +111,14 @@ export type XyDatasetItem = {
     linearProgression: LinearProgression
     plots: XyTypes[];
     bars: XyTypes[];
+    datasetId: string;
+}
+
+export type WaffleDatasetItem = {
+    [key: string]: any;
+    name: string;
+    value: number;
+    color: string;
     datasetId: string;
 }
 
@@ -161,6 +180,11 @@ export type LinearProgression = {
     trend: number;
 }
 
+export type Plot = {
+    x: number;
+    y: number;
+}
+
 export type XyTypes = {
     x: number;
     y: number;
@@ -173,4 +197,9 @@ export type Line = {
     y1: number;
     x2: number;
     y2: number;
+}
+
+export type Datapoint = {
+    element: SVGElement;
+    datasetId: string;
 }

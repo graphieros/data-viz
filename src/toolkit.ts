@@ -1,7 +1,7 @@
-import { Config, DonutDatasetItem, GaugeDataset, RadialBarDatasetItem, VerticalDatasetItem, XyDatasetItem } from "../types";
+import { Config, DonutDatasetItem, GaugeDataset, RadialBarDatasetItem, VerticalDatasetItem, WaffleDatasetItem, XyDatasetItem } from "../types";
 import { DomElement, Icon } from "./constants";
 import { addTo, grabId, isValidUserValue, spawn } from "./functions";
-import { RADIAL_BAR_STATE, VERTICAL_STATE, XY_STATE } from "./state_xy";
+import { DONUT_STATE, RADIAL_BAR_STATE, VERTICAL_STATE, WAFFLE_STATE, XY_STATE } from "./state_xy";
 
 export function createCsvContent(rows: string[][]) {
     return `data:text/csv;charset=utf-8,${rows.map(r => r.join(',')).join('\n')}`;
@@ -87,6 +87,138 @@ export function createTableSkeleton({ config, id }: { config: Config, id: string
     thead.style.outline = "1px solid #e1e5e8";
     const tbody = spawn("TBODY");
     return { tableWrapper, table, thead, tbody };
+}
+
+export function createToolkitWaffle({
+    id,
+    config,
+    dataset,
+    parent,
+    total,
+    average
+}: {
+    id: string,
+    config: Config,
+    dataset: WaffleDatasetItem[],
+    parent: HTMLDivElement,
+    total: number,
+    average: number
+}) {
+    const oldToolkit = grabId(`toolkit_${id}`);
+    if (oldToolkit) {
+        oldToolkit.remove();
+    }
+    const oldTable = grabId(`table_${id}`);
+    if (oldTable) {
+        oldTable.remove();
+    }
+
+    let rows = [[]] as any;
+
+    const dataRows = dataset.map(ds => {
+        return [
+            ds.name,
+            isNaN(ds.value / total * 100) ? '-' : ds.value / total * 100,
+            isNaN(ds.value) ? '-' : ds.value
+        ]
+    });
+
+    rows = [
+        [`${config.title.text || "-"} ${config.title.subtitle.text ? `: ${config.title.subtitle.text}` : ''}`, "", ""],
+        [config.table.translations.serie, config.table.translations.percentage, config.table.translations.value],
+        ['Σ', 100, isNaN(total) ? '-' : total],
+        ['μ', '', isNaN(average) ? '-' : average],
+        ...dataRows
+    ];
+
+    const csvContent = createCsvContent(rows);
+
+    const toolkitWrapper = createToolkitWrapper({
+        config,
+        id
+    });
+
+    createCsvButton({
+        config,
+        wrapper: toolkitWrapper,
+        csvContent
+    });
+
+    const tableButton = createTableButton({
+        config,
+        wrapper: toolkitWrapper,
+        callback: toggleTable,
+        initIcon: Icon.TABLE_CLOSED
+    });
+
+    const { tableWrapper, table, thead, tbody } = createTableSkeleton({ config, id });
+
+    const TrTh = rows.slice(0, 4);
+    TrTh.forEach((t: any) => {
+        const tr = spawn("TR");
+        t.forEach((h: any) => {
+            const th = spawn("TH");
+            th.innerHTML = isNaN(h) || h === '' ? h : Number(Number(h).toFixed(config.table.th.roundingValue)).toLocaleString();
+            th.style.textAlign = "right";
+            th.style.paddingRight = "6px";
+            th.style.background = config.table.th.backgroundColor;
+            th.style.color = config.table.th.color;
+            th.style.fontSize = `${config.table.th.fontSize}px`;
+            th.style.outline = "1px solid #e1e5e8";
+            tr.appendChild(th);
+        });
+        thead.appendChild(tr);
+    });
+
+    const TrTd = rows.slice(4).map((row: any) => {
+        return row;
+    });
+
+    TrTd.forEach((t: any) => {
+        const tr = spawn("TR");
+        t.forEach((r: any, i: number) => {
+            const td = spawn("TD");
+            td.style.border = "1px solid #e1e5e8";
+            td.style.textAlign = "right";
+            td.style.paddingRight = "6px";
+            td.style.fontVariantNumeric = "tabluar-nums";
+            td.style.fontSize = `${config.table.td.fontSize}px`;
+            td.style.background = config.table.td.backgroundColor;
+            td.style.color = config.table.td.color;
+            td.innerHTML = isNaN(r) || r === '' ? r : Number(Number(r).toFixed(i === 1 ? config.table.td.roundingPercentage : config.table.td.roundingValue)).toLocaleString();
+            tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+    });
+
+    [thead, tbody].forEach(el => table.appendChild(el));
+    tableWrapper.appendChild(table);
+
+    if (config.table.show || WAFFLE_STATE.openTables.includes(id)) {
+        tableWrapper.style.display = "flex";
+        tableButton.innerHTML = Icon.TABLE_CLOSED;
+        WAFFLE_STATE.openTables.push(id);
+    } else {
+        tableWrapper.style.display = "none";
+        tableButton.innerHTML = Icon.TABLE_OPEN;
+        WAFFLE_STATE.openTables = WAFFLE_STATE.openTables.filter(el => el !== id)
+    }
+
+    parent.appendChild(tableWrapper);
+
+    function toggleTable() {
+        if (tableWrapper.style.display === "none") {
+            tableWrapper.style.display = "flex";
+            tableButton.innerHTML = Icon.TABLE_CLOSED;
+            WAFFLE_STATE.openTables.push(id);
+        } else {
+            tableWrapper.style.display = "none";
+            tableButton.innerHTML = Icon.TABLE_OPEN;
+            WAFFLE_STATE.openTables = WAFFLE_STATE.openTables.filter(el => el !== id)
+        }
+    }
+
+    parent.prepend(toolkitWrapper);
 }
 
 export function createToolkitRadialbar({
@@ -465,7 +597,7 @@ export function createToolkitVerticalBar({ id, config, dataset, parent, total, a
     parent.prepend(toolkitWrapper);
 }
 
-export function createToolkitDonut({ id, config, dataset, parent, total }: { id: string, config: Config, dataset: DonutDatasetItem[], parent: HTMLDivElement, total: number }) {
+export function createToolkitDonut({ id, config, dataset, parent, total, average }: { id: string, config: Config, dataset: DonutDatasetItem[], parent: HTMLDivElement, total: number, average: number }) {
     const oldToolkit = grabId(`toolkit_${id}`);
     if (oldToolkit) {
         oldToolkit.remove();
@@ -488,7 +620,8 @@ export function createToolkitDonut({ id, config, dataset, parent, total }: { id:
     rows = [
         [`${config.title.text || "-"} ${config.title.subtitle.text ? `: ${config.title.subtitle.text}` : ''}`, "", ""],
         [config.table.translations.serie, config.table.translations.percentage, config.table.translations.value],
-        ['Σ', 100, total],
+        ['Σ', 100, isNaN(total) ? '-' : total],
+        ['μ', '', isNaN(average) ? '-' : average],
         ...dataRows
     ];
 
@@ -514,7 +647,7 @@ export function createToolkitDonut({ id, config, dataset, parent, total }: { id:
 
     const { tableWrapper, table, thead, tbody } = createTableSkeleton({ config, id });
 
-    const TrTh = rows.slice(0, 3);
+    const TrTh = rows.slice(0, 4);
     TrTh.forEach((t: any) => {
         const tr = spawn("TR");
         t.forEach((h: any) => {
@@ -531,7 +664,7 @@ export function createToolkitDonut({ id, config, dataset, parent, total }: { id:
         thead.appendChild(tr);
     });
 
-    const TrTd = rows.slice(3).map((row: any) => {
+    const TrTd = rows.slice(4).map((row: any) => {
         return row;
     });
 
@@ -555,14 +688,14 @@ export function createToolkitDonut({ id, config, dataset, parent, total }: { id:
     [thead, tbody].forEach(el => table.appendChild(el));
     tableWrapper.appendChild(table);
 
-    if (config.table.show || XY_STATE.openTables.includes(id)) {
+    if (config.table.show || DONUT_STATE.openTables.includes(id)) {
         tableWrapper.style.display = "flex";
         tableButton.innerHTML = Icon.TABLE_CLOSED;
-        XY_STATE.openTables.push(id);
+        DONUT_STATE.openTables.push(id);
     } else {
         tableWrapper.style.display = "none";
         tableButton.innerHTML = Icon.TABLE_OPEN;
-        XY_STATE.openTables = XY_STATE.openTables.filter(el => el !== id)
+        DONUT_STATE.openTables = DONUT_STATE.openTables.filter(el => el !== id)
     }
 
     parent.appendChild(tableWrapper);
@@ -571,11 +704,11 @@ export function createToolkitDonut({ id, config, dataset, parent, total }: { id:
         if (tableWrapper.style.display === "none") {
             tableWrapper.style.display = "flex";
             tableButton.innerHTML = Icon.TABLE_CLOSED;
-            XY_STATE.openTables.push(id);
+            DONUT_STATE.openTables.push(id);
         } else {
             tableWrapper.style.display = "none";
             tableButton.innerHTML = Icon.TABLE_OPEN;
-            XY_STATE.openTables = XY_STATE.openTables.filter(el => el !== id)
+            DONUT_STATE.openTables = DONUT_STATE.openTables.filter(el => el !== id)
         }
     }
 
@@ -707,7 +840,8 @@ const toolkit = {
     createToolkitXy,
     createToolkitDonut,
     createToolkitVerticalBar,
-    createToolkitGauge
+    createToolkitGauge,
+    createToolkitWaffle
 }
 
 export default toolkit;

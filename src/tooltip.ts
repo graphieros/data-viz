@@ -1,4 +1,4 @@
-import { Config, DonutDatasetItem, DonutState, GaugeState, RadialBarDatasetItem, UnknownObj, VerticalDatasetItem, VerticalState, XyDatasetItem, XyState } from "../types";
+import { Config, Datapoint, DonutDatasetItem, DonutState, GaugeState, RadialBarDatasetItem, UnknownObj, VerticalDatasetItem, VerticalState, WaffleDatasetItem, WaffleState, XyDatasetItem, XyState } from "../types";
 import { DomElement } from "./constants";
 import { addTo, grabId, isValidUserValue, spawn } from "./functions";
 
@@ -35,7 +35,60 @@ export function applyEventListener({ state, svg, tooltip, config }: { state: Unk
     });
 }
 
-export function createTooltipRadialBar({ id, state, parent, total }: { id: string, state: VerticalState, parent: HTMLDivElement, total: number }) {
+export function createTooltipWaffle({ id, state, parent, total }: { id: string, state: WaffleState, parent: HTMLDivElement, total: number }) {
+    const oldTooltip = grabId(`tooltip_${id}`);
+    if (oldTooltip) {
+        oldTooltip.remove();
+    }
+    const config: Config = state[id].config;
+    const svg: SVGElement = state[id].svg;
+    const tooltip = generateTooltip({ config });
+    addTo(tooltip, "id", `tooltip_${id}`);
+    parent.appendChild(tooltip);
+    tooltip.style.display = "none";
+
+    applyEventListener({
+        state,
+        tooltip,
+        svg,
+        config
+    });
+
+    const traps = state[id].dataset.datapoints;
+    traps.forEach((trap: Datapoint) => {
+        const itsDataset = trap.element;
+        if (itsDataset) {
+            trap.element.addEventListener("mouseover", () => {
+                generateTooltipContent(trap.datasetId);
+            });
+            trap.element.addEventListener("mouseleave", () => {
+                tooltip.style.display = "none";
+                state.isTooltip = false;
+            })
+        }
+    });
+
+    function generateTooltipContent(datasetId: string) {
+        state.isTooltip = true,
+            tooltip.style.display = "flex";
+        const source: WaffleDatasetItem = state[id].dataset.find((ds: WaffleDatasetItem) => ds.datasetId === datasetId);
+
+        let html = "";
+        html += `<div style="display:flex;align-items:center;flex-direction:row;gap:4px;font-weight:bold"><svg viewBox="0 0 16 16" height="18" width="18" style="all:unset;font-size:${config.tooltip.fontSize};color:${config.tooltip.color}"><rect stroke="none" fill="${config.rects.gradient.baseColor}" x="0" y="0" height="16" width="16"/><rect stroke="none" fill="${config.rects.gradient.show ? `url(#waffle_gradient_${datasetId})` : source.color}" x="0" y="0" height="16" width="16" rx="${config.rects.borderRadius}"/></svg><div>${source.name}</div></div>`;
+
+        html += `<div style="width:100%; margin-top:6px; padding-top:6px; border-top:1px solid #e1e5e8">`;
+        if (config.tooltip.percentage.show) {
+            html += `<div style="font-weight:${config.tooltip.percentage.bold ? 'bold' : 'normal'}">${isNaN(source.value) ? '-' : Number((source.value / total * 100).toFixed(config.tooltip.percentage.rounding)).toLocaleString()}%</div>`;
+        }
+        if (config.tooltip.value.show) {
+            html += `<div style="font-weight:${config.tooltip.value.bold ? 'bold' : 'normal'}">${isNaN(source.value) ? '-' : Number(source.value.toFixed(config.tooltip.value.rounding)).toLocaleString()}</div>`
+        }
+        html += `</div>`;
+        tooltip.innerHTML = html;
+    }
+}
+
+export function createTooltipRadialBar({ id, state, parent }: { id: string, state: VerticalState, parent: HTMLDivElement }) {
     const oldTooltip = grabId(`tooltip_${id}`);
     if (oldTooltip) {
         oldTooltip.remove();
@@ -345,7 +398,8 @@ const tooltip = {
     createTooltipXy,
     createTooltipDonut,
     createTooltipVerticalBar,
-    createTooltipGauge
+    createTooltipGauge,
+    createTooltipWaffle
 }
 
 export default tooltip;

@@ -4,6 +4,7 @@ import { prepareXy } from "./xy";
 import { prepareVerticalBar } from "./verticalBar";
 import { prepareGauge } from "./gauge";
 import { prepareRadialBar } from "./radialBar";
+import { prepareWaffle } from "./waffle";
 
 export function canProceed(element: HTMLDivElement, type: string) {
     if (element.dataset.visionSet === "ok") {
@@ -34,6 +35,9 @@ export function createCharts(attr = "") {
         const type_radial_bar = Array.from(targets).filter((dataVisionWrapper) => {
             return dataVisionWrapper.hasAttribute(DataVisionAttribute.RADIAL_BAR)
         });
+        const type_waffle = Array.from(targets).filter((dataVisionWrapper) => {
+            return dataVisionWrapper.hasAttribute(DataVisionAttribute.WAFFLE)
+        });
 
         if (!attr) {
             type_xy.forEach(xy => {
@@ -61,6 +65,11 @@ export function createCharts(attr = "") {
                     prepareRadialBar(radialBar as unknown as HTMLDivElement)
                 }
             });
+            type_waffle.forEach(waffle => {
+                if (canProceed(waffle as HTMLDivElement, "waffle")) {
+                    prepareWaffle(waffle as unknown as HTMLDivElement)
+                }
+            })
         }
 
         if (attr === DataVisionAttribute.XY) {
@@ -99,6 +108,14 @@ export function createCharts(attr = "") {
             type_radial_bar.forEach(radialBar => {
                 if (canProceed(radialBar as HTMLDivElement, "radial-bar")) {
                     prepareRadialBar(radialBar as unknown as HTMLDivElement)
+                }
+            });
+        }
+
+        if (attr === DataVisionAttribute.WAFFLE) {
+            type_waffle.forEach(waffle => {
+                if (canProceed(waffle as HTMLDivElement, "waffle")) {
+                    prepareWaffle(waffle as unknown as HTMLDivElement)
                 }
             });
         }

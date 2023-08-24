@@ -17,3 +17,4 @@ Available components:
 - [Vertical Bar](https://data-vision.graphieros.com/docs#vertical-bar)
 - [Gauge](https://data-vision.graphieros.com/docs#gauge)
 - [Radial Bar](https://data-vision.graphieros.com/docs#radial-bar)
+- [Waffle](https://data-vision.graphieros.com/docs#waffle)

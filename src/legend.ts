@@ -1,10 +1,11 @@
 import { drawXy } from "./xy";
 import { DomElement, SvgAttribute, SvgElement } from "./constants";
 import { addTo, grabId, spawn, spawnNS } from "./functions";
-import { Config, DonutDatasetItem, DonutState, DonutStateObject, RadialBarDatasetItem, RadialBarState, RadialBarStateObject, VerticalState, VerticalStateObject, XyDatasetItem, XyState, XyStateObject } from "../types";
+import { Config, DonutDatasetItem, DonutState, DonutStateObject, RadialBarDatasetItem, RadialBarState, RadialBarStateObject, VerticalState, VerticalStateObject, WaffleDatasetItem, WaffleState, WaffleStateObject, XyDatasetItem, XyState, XyStateObject } from "../types";
 import { drawDonut } from "./donut";
 import { drawVerticalBar } from "./verticalBar";
 import { drawRadialBar } from "./radialBar";
+import { drawWaffle } from "./waffle";
 
 export function createLegendWrapper({ config, id }: { config: Config, id: string }) {
     const legendWrapper = spawn(DomElement.DIV);
@@ -38,12 +39,74 @@ export function segregateRadialBar({ datasetId, id, state, legendItem }: {
     } else {
         legendItem.style.opacity = "0.5";
         state[id].segregatedDatasets.push(datasetId);
-        state[id].mutableDataset = state[id].mutableDataset.filter((el: RadialBarDatasetItem) => el.datasetId !== datasetId);
+        state[id].mutableDataset = state[id].mutableDataset.filter((el: WaffleDatasetItem) => el.datasetId !== datasetId);
     }
     drawRadialBar({
         state,
         id
     })
+}
+
+export function segregateWaffle({ datasetId, id, state, legendItem }: { datasetId: string, id: string, state: WaffleState, legendItem: HTMLElement }) {
+    if (state[id].segregatedDatasets.includes(datasetId) && state[id].dataset) {
+        state[id].segregatedDatasets = state[id].segregatedDatasets.filter((el: string) => el !== datasetId);
+        legendItem.style.opacity = "1";
+    } else {
+        legendItem.style.opacity = "0.5";
+        state[id].segregatedDatasets.push(datasetId);
+        state[id].mutableDataset = state[id].mutableDataset.filter((el: RadialBarDatasetItem) => el.datasetId !== datasetId);
+    }
+    drawWaffle({
+        state,
+        id
+    });
+}
+
+export function createLegendWaffle({ id, state }: { id: string, state: WaffleState }) {
+    const { svg, parent, config, drawingArea, dataset } = state[id] as WaffleStateObject;
+
+    if (!config.legend.show) return;
+
+    const oldLegend = grabId(`legend_${id}`);
+    if (oldLegend) {
+        oldLegend.remove();
+    }
+
+    const legendWrapper = createLegendWrapper({
+        config,
+        id
+    });
+
+    dataset.forEach(ds => {
+        const legendItem = spawn(DomElement.DIV);
+        legendItem.style.display = "flex";
+        legendItem.style.cursor = "pointer";
+        legendItem.style.flexDirection = "flex-row";
+        legendItem.style.alignItems = "center";
+        legendItem.style.justifyContent = "center";
+        legendItem.style.gap = "3px";
+        legendItem.innerHTML = `<svg viewBox="0 0 16 16" height="18" width="18" style="font-size:${config.tooltip.fontSize};color:${config.tooltip.color}"><rect stroke="none" rx="${config.rects.borderRadius}" fill="${config.rects.gradient.baseColor}" x="0" y="0" height="16" width="16"/><rect stroke="none" fill="${config.rects.gradient.show ? `url(#waffle_gradient_${ds.datasetId})` : ds.color}" x="0" y="0" height="16" width="16" rx="${config.rects.borderRadius}"/></svg></span><span>${ds.name}</span>`
+        legendItem.addEventListener("click", () => segregateWaffle({ datasetId: ds.datasetId, id, state, legendItem }))
+        if (state[id].segregatedDatasets.includes(ds.datasetId)) {
+            legendItem.style.filter = "opacity(50%)";
+        } else {
+            legendItem.style.filter = "none";
+        }
+        legendWrapper.appendChild(legendItem);
+    });
+
+    if (config.useDiv) {
+        parent.appendChild(legendWrapper);
+    } else {
+        const foreignObject = spawnNS(SvgElement.FOREIGNOBJECT);
+        addTo(foreignObject, SvgAttribute.X, "0");
+        addTo(foreignObject, SvgAttribute.Y, drawingArea.bottom);
+        addTo(foreignObject, SvgAttribute.WIDTH, drawingArea.fullWidth);
+        addTo(foreignObject, SvgAttribute.HEIGHT, drawingArea.fullHeight - drawingArea.bottom);
+        foreignObject.style.overflow = "visible";
+        foreignObject.appendChild(legendWrapper);
+        svg.appendChild(foreignObject);
+    }
 }
 
 export function createLegendRadialBar({ id, state }: { id: string, state: RadialBarState }) {
@@ -295,7 +358,8 @@ const legend = {
     createLegendXy,
     createLegendDonut,
     createLegendVerticalBar,
-    createLegendRadialBar
+    createLegendRadialBar,
+    createLegendWaffle
 }
 
 export default legend;
