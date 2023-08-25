@@ -74,7 +74,7 @@ export function createTooltipWaffle({ id, state, parent, total }: { id: string, 
         const source: WaffleDatasetItem = state[id].dataset.find((ds: WaffleDatasetItem) => ds.datasetId === datasetId);
 
         let html = "";
-        html += `<div style="display:flex;align-items:center;flex-direction:row;gap:4px;font-weight:bold"><svg viewBox="0 0 16 16" height="18" width="18" style="all:unset;font-size:${config.tooltip.fontSize};color:${config.tooltip.color}"><rect stroke="none" fill="${config.rects.gradient.baseColor}" x="0" y="0" height="16" width="16"/><rect stroke="none" fill="${config.rects.gradient.show ? `url(#waffle_gradient_${datasetId})` : source.color}" x="0" y="0" height="16" width="16" rx="${config.rects.borderRadius}"/></svg><div>${source.name}</div></div>`;
+        html += `<div style="display:flex;align-items:center;flex-direction:row;gap:4px;font-weight:bold"><svg viewBox="0 0 16 16" height="18" width="18" style="all:unset;font-size:${config.tooltip.fontSize};color:${config.tooltip.color}"><rect stroke="none" rx="${config.rects.borderRadius}" fill="${config.rects.gradient.baseColor}" x="0" y="0" height="16" width="16"/><rect stroke="none" fill="${config.rects.gradient.show ? `url(#waffle_gradient_${datasetId})` : source.color}" x="0" y="0" height="16" width="16" rx="${config.rects.borderRadius}"/></svg><div>${source.name}</div></div>`;
 
         html += `<div style="width:100%; margin-top:6px; padding-top:6px; border-top:1px solid #e1e5e8">`;
         if (config.tooltip.percentage.show) {

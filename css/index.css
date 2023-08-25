@@ -2,14 +2,6 @@
     max-width: 300px;
 }
 
-.data-vision svg circle {
-    transition: all 0.1s ease-in-out;
-}
-
-.data-vision svg * {
-    transition: all 0.1s ease-in-out;
-}
-
 .data-vision-button {
     all: unset;
     align-items:center;

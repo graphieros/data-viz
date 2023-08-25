@@ -42,7 +42,7 @@ export function prepareRadialBar(parent: HTMLDivElement) {
         dataset,
         state: RADIAL_BAR_STATE,
         idType: "radialId",
-        observedType: "dataset",
+        observedType: "config",
         config,
         loader: loadRadialBar
     }));
@@ -56,7 +56,7 @@ export function prepareRadialBar(parent: HTMLDivElement) {
         dataset,
         state: RADIAL_BAR_STATE,
         idType: "radialId",
-        observedType: "config",
+        observedType: "dataset",
         config,
         loader: loadRadialBar
     }));
@@ -247,8 +247,7 @@ export function drawRadialBar({ state, id }: { state: RadialBarState, id: string
         createTooltipRadialBar({
             id,
             state,
-            parent,
-            total
+            parent
         })
     }
 
