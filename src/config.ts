@@ -933,13 +933,47 @@ export const configWaffle = {
     }
 }
 
+export const configSkeleton = {
+    backgroundColor: "#FFFFFF",
+    color: "#2D353C",
+    fontFamily: "inherit",
+    width: 512,
+    height: 316,
+    useDiv: true,
+    // hide padding
+    padding: {
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0
+    },
+    // hide toolkit
+    toolkit: {
+        show: false,
+        buttons: {
+            backgroundColor: "#FFFFFF",
+            color: "#2D353C",
+            size: 32,
+            outline: "1px solid #e1e5e8",
+        },
+        csvExport: {
+            show: false,
+        },
+    },
+    line: {
+        stroke: "#e1e5e8",
+        strokeWidth: 1
+    }
+}
+
 const config = {
     palette,
     opacity,
     configXy,
     configDonut,
     configVerticalBar,
-    configRadialBar
+    configRadialBar,
+    configSkeleton
 }
 
 export default config;

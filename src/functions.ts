@@ -1,5 +1,5 @@
-import { Config, DonutDatasetItem, DonutState, DrawingArea, GaugeDataset, GaugeState, RadialBarDatasetItem, RadialBarState, UnknownObj, VerticalDatasetItem, VerticalState, WaffleDatasetItem, WaffleState, XyDatasetItem, XyState } from "../types";
-import { configDonut, configGauge, configRadialBar, configVerticalBar, configWaffle, configXy, opacity, palette } from "./config";
+import { Config, DonutDatasetItem, DonutState, DrawingArea, GaugeDataset, GaugeState, RadialBarDatasetItem, RadialBarState, SkeletonState, UnknownObj, VerticalDatasetItem, VerticalState, WaffleDatasetItem, WaffleState, XyDatasetItem, XyState } from "../types";
+import { configDonut, configGauge, configRadialBar, configSkeleton, configVerticalBar, configWaffle, configXy, opacity, palette } from "./config";
 import { DataVisionAttribute, SvgAttribute } from "./constants";
 
 /** Shorthand for element.setAttribute
@@ -776,11 +776,11 @@ export function handleConfigOrDatasetChange({
     dataset: XyDatasetItem[] | DonutDatasetItem[] | VerticalDatasetItem[] | GaugeDataset | RadialBarDatasetItem[] | WaffleDatasetItem[],
     id: string,
     config: Config,
-    state: XyState | DonutState | VerticalState | GaugeState | RadialBarState | WaffleState,
+    state: XyState | DonutState | VerticalState | GaugeState | RadialBarState | WaffleState | SkeletonState,
     parent: HTMLDivElement,
     svg: SVGElement,
     observedType: "dataset" | "config",
-    idType: "xyId" | "donutId" | "verticalId" | "gaugeId" | "radialId" | "waffleId",
+    idType: "xyId" | "donutId" | "verticalId" | "gaugeId" | "radialId" | "waffleId" | "skeletonId",
     loader: (...args: any[]) => void
 }) {
     let defaultConfig: Config;
@@ -805,26 +805,29 @@ export function handleConfigOrDatasetChange({
         case "waffleId":
             defaultConfig = configWaffle;
             break;
+        case "skeletonId":
+            defaultConfig = configSkeleton;
+            break;
         default:
             return;
     }
     for (const mutation of mutations) {
-
         if (observedType === "config") {
             if (mutation.type === 'attributes' && mutation.attributeName === DataVisionAttribute.CONFIG) {
                 const newJSONValue = (mutation.target as HTMLElement).getAttribute(DataVisionAttribute.CONFIG);
                 if (newJSONValue === DataVisionAttribute.OK || newJSONValue === null) return;
                 try {
-                    const newConfig = JSON.parse(newJSONValue);
+                    const newConfig = parseUserConfig(newJSONValue);
                     state[id].config = createConfig({
                         userConfig: newConfig,
                         defaultConfig
                     });
+
                     svg.remove();
                     parent.innerHTML = "";
                     svg = createSvg({
                         parent,
-                        dimensions: { x: newConfig.width, y: newConfig.height },
+                        dimensions: { x: state[id].config.width, y: state[id].config.height },
                         config: convertConfigColors(state[id].config),
                         overflow
                     });

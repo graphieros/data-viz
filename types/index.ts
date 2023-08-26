@@ -20,6 +20,14 @@ export type VerticalState = State & {}
 export type GaugeState = State & {}
 export type RadialBarState = State & {}
 export type WaffleState = State & {}
+export type SkeletonState = UnknownObj & {}
+
+export type SkeletonStateObj = {
+    parent: HTMLDivElement;
+    svg: SVGElement;
+    config: Config;
+    drawingArea: DrawingArea;
+}
 
 export type XyStateObject = {
     parent: HTMLDivElement;

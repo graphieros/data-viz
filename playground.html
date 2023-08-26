@@ -10,6 +10,13 @@
     <link rel="icon" type="image/x-icon" href="/assets/favicon.ico">
 </head>
 <body style="background:#1A1A1A">
+    <button id="toggle">TOGGLE</button>
+    <div
+      class="data-vision"
+      data-vision-skeleton="line"
+      data-vision-skeleton-active="false"
+      >
+    </div>
     <div style="display:flex; gap:12px; flex-direction:row;width:100%">
       <div
         width="100%"
@@ -386,5 +393,15 @@
             }
           }'
     ></div>
+    <script>
+      const test = document.getElementsByClassName("data-vision")[0];
+      const toggle = document.getElementById("toggle");
+      let isActive = false;
+      toggle.addEventListener("click", () => {
+        isActive = !isActive;
+        test.dataset.visionSkeletonActive = isActive;
+      });
+     
+    </script>
 </body>
 </html>

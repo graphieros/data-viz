@@ -35,6 +35,10 @@ if (typeof window !== undefined) {
             createCharts(DataVisionAttribute.WAFFLE);
         }
 
+        function initSkeletons() {
+            createCharts(DataVisionAttribute.SKELETON);
+        }
+
         // Public
         return {
             createCharts,
@@ -43,7 +47,8 @@ if (typeof window !== undefined) {
             initVerticalBars,
             initGauges,
             initRadialBars,
-            initWaffles
+            initWaffles,
+            initSkeletons
         }
     }(
         createCharts,

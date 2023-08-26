@@ -11,6 +11,8 @@ export namespace DataVisionAttribute {
     export const GAUGE = "data-vision-gauge";
     export const RADIAL_BAR = "data-vision-radial-bar";
     export const WAFFLE = "data-vision-waffle";
+    export const SKELETON = "data-vision-skeleton"
+    export const SKELETON_ACTIVE = "data-vision-skeleton-active";
 }
 
 export namespace DomElement {
