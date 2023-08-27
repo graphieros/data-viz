@@ -1,6 +1,6 @@
 {
   "name": "data-vision",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "private": false,
   "type": "module",
   "description": "A lightweight and user-empowering Javascript chart library, easy to integrate on any framework.",
@@ -13,6 +13,7 @@
     "gauge",
     "radial bar",
     "waffle",
+    "skeleton",
     "chart library",
     "graph library",
     "typescript"

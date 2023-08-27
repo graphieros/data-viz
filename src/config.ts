@@ -935,11 +935,9 @@ export const configWaffle = {
 
 export const configSkeleton = {
     backgroundColor: "#FFFFFF",
-    color: "#2D353C",
-    fontFamily: "inherit",
-    width: 512,
-    height: 316,
-    useDiv: true,
+    animated: true,
+    width: 1, // hide
+    height: 1, // hide
     // hide padding
     padding: {
         top: 0,
@@ -961,8 +959,30 @@ export const configSkeleton = {
         },
     },
     line: {
-        stroke: "#e1e5e8",
+        color: "#e1e5e8",
         strokeWidth: 1
+    },
+    bar: {
+        color: "#e1e5e8",
+        strokeWidth: 1,
+    },
+    donut: {
+        color: "#e1e5e8",
+        strokeWidth: 60
+    },
+    waffle: {
+        color: "#e1e5e8",
+        borderRadius: 2,
+    },
+    gauge: {
+        color: "#e1e5e8",
+        strokeWidth: 20,
+    },
+    radialBar: {
+        color: "#e1e5e8",
+    },
+    verticalBar: {
+        color: "#e1e5e8",
     }
 }
 

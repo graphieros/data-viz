@@ -18,3 +18,6 @@ Available components:
 - [Gauge](https://data-vision.graphieros.com/docs#gauge)
 - [Radial Bar](https://data-vision.graphieros.com/docs#radial-bar)
 - [Waffle](https://data-vision.graphieros.com/docs#waffle)
+
+## Utilities:
+- [Skeleton loaders](https://data-vision.graphieros.com/docs#skeleton)
