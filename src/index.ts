@@ -39,6 +39,9 @@ if (typeof window !== undefined) {
             createCharts(DataVisionAttribute.SKELETON);
         }
 
+        // TODO: scatter
+        // TODO: heatmap
+
         // Public
         return {
             createCharts,

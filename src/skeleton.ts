@@ -1,7 +1,7 @@
 import { Config, SkeletonState, SkeletonStateObj } from "../types";
 import { configSkeleton, opacity } from "./config";
 import { DataVisionAttribute, SvgAttribute, SvgElement } from "./constants";
-import { addTo, createConfig, createSvg, createUid, getDrawingArea, handleConfigOrDatasetChange, parseUserConfig, spawnNS } from "./functions";
+import { addTo, createConfig, createSvg, createUid, handleConfigOrDatasetChange, parseUserConfig, spawnNS } from "./functions";
 import { SKELETON_STATE } from "./state_xy";
 
 export function handleActiveChange({
