@@ -6,7 +6,6 @@ import { SKELETON_STATE } from "./state_xy";
 
 export function handleActiveChange({
     mutations,
-    observer,
     parent
 }: {
     mutations: MutationRecord[],
@@ -26,7 +25,6 @@ export function handleActiveChange({
 
 export function handleSkeletonTypeChange({
     mutations,
-    observer,
     parent,
     config,
     id,
